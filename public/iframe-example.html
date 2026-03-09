@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,40 +12,40 @@
             padding: 20px;
             background: #f5f5f5;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-        
+
         h1 {
             color: #333;
             text-align: center;
             margin-bottom: 10px;
         }
-        
+
         .info {
             background: #fff;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-        
+
         .iframe-container {
             background: #fff;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-        
+
         iframe {
             width: 100%;
             border: none;
             border-radius: 8px;
             min-height: 600px;
         }
-        
+
         code {
             background: #f4f4f4;
             padding: 2px 6px;
@@ -52,7 +53,7 @@
             font-family: 'Courier New', monospace;
             font-size: 14px;
         }
-        
+
         pre {
             background: #1e1e1e;
             color: #d4d4d4;
@@ -61,24 +62,25 @@
             overflow-x: auto;
             margin: 10px 0;
         }
-        
+
         .method {
             margin-bottom: 30px;
         }
-        
+
         .method h3 {
             color: #43EA80;
             margin-bottom: 10px;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🎯 Maki Aranma Talep Formu - iFrame Entegrasyonu</h1>
-        
+
         <div class="info">
             <h2>📋 Kullanım Yöntemleri</h2>
-            
+
             <div class="method">
                 <h3>Yöntem 1: Kullanıcı Adı ile iFrame (Önerilen - Otomatik Doldurma)</h3>
                 <p>Kullanıcı adını URL parametresi olarak gönderin:</p>
@@ -89,9 +91,10 @@
     frameborder="0"
     style="border: none; border-radius: 8px;"
 &gt;&lt;/iframe&gt;</pre>
-                <p style="margin-top: 10px;"><strong>Not:</strong> <code>kullaniciadi123</code> yerine gerçek kullanıcı adını koyun.</p>
+                <p style="margin-top: 10px;"><strong>Not:</strong> <code>kullaniciadi123</code> yerine gerçek kullanıcı
+                    adını koyun.</p>
             </div>
-            
+
             <div class="method">
                 <h3>Yöntem 2: Basit iFrame Kodu (Kullanıcı Manuel Girer)</h3>
                 <p>Kullanıcı adı otomatik gönderilmezse kullanıcı kendisi girer:</p>
@@ -103,7 +106,7 @@
     style="border: none; border-radius: 8px;"
 &gt;&lt;/iframe&gt;</pre>
             </div>
-            
+
             <div class="method">
                 <h3>Yöntem 3: Responsive iFrame (Mobil Uyumlu)</h3>
                 <pre>&lt;div style="position: relative; padding-bottom: 100%; height: 0; overflow: hidden; max-width: 500px; margin: 0 auto;"&gt;
@@ -113,7 +116,7 @@
     &gt;&lt;/iframe&gt;
 &lt;/div&gt;</pre>
             </div>
-            
+
             <div class="method">
                 <h3>Yöntem 4: JavaScript ile Dinamik Yükleme + Otomatik Kullanıcı Adı</h3>
                 <p>Sitenizin oturum sisteminden kullanıcı adını otomatik çekin:</p>
@@ -132,7 +135,7 @@
     document.getElementById('makiForm').appendChild(iframe);
 &lt;/script&gt;</pre>
             </div>
-            
+
             <div class="method">
                 <h3>Yöntem 5: PHP ile Dinamik Username (Sunucu Taraflı)</h3>
                 <pre>&lt;?php
@@ -148,20 +151,23 @@
     style="border: none; border-radius: 8px;"
 &gt;&lt;/iframe&gt;</pre>
             </div>
-            
+
             <div class="method">
                 <h3>⚙️ Önemli Notlar:</h3>
                 <ul>
-                    <li><code>http://localhost:3000</code> adresini canlı domain adresinizle değiştirin</li>
+                    <li><code>https://aranmatalep-production.up.railway.app</code> adresini canlı domain adresinizle
+                        değiştirin</li>
                     <li>HTTPS kullanıyorsanız, iframe src'de de HTTPS kullanın</li>
-                    <li><strong>Kullanıcı adı parametresi:</strong> <code>?username=KULLANICIADI</code> şeklinde ekleyin</li>
-                    <li><strong>Türkçe karakter:</strong> <code>encodeURIComponent()</code> veya <code>urlencode()</code> kullanın</li>
+                    <li><strong>Kullanıcı adı parametresi:</strong> <code>?username=KULLANICIADI</code> şeklinde ekleyin
+                    </li>
+                    <li><strong>Türkçe karakter:</strong> <code>encodeURIComponent()</code> veya
+                        <code>urlencode()</code> kullanın</li>
                     <li>Height değerini içeriğe göre ayarlayabilirsiniz (600-800px arası önerilir)</li>
                     <li>İçerik tam görünmüyorsa height değerini artırın</li>
                     <li><strong>Güvenlik:</strong> Kullanıcı adını URL'den alırken sanitize edin</li>
                 </ul>
             </div>
-            
+
             <div class="method">
                 <h3>🔧 Kullanıcı Adı Kaynakları:</h3>
                 <ul>
@@ -174,27 +180,21 @@
                 </ul>
             </div>
         </div>
-        
+
         <div class="iframe-container">
             <h2 style="text-align: center; color: #333; margin-bottom: 20px;">
                 👇 Canlı Önizleme - Username Parametresi ile Test
             </h2>
-            
+
             <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">
                     Test için kullanıcı adı girin:
                 </label>
                 <div style="display: flex; gap: 10px;">
-                    <input 
-                        type="text" 
-                        id="testUsername" 
-                        placeholder="ornek_kullanici"
-                        style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px;"
-                    >
-                    <button 
-                        onclick="updateIframe()" 
-                        style="padding: 10px 20px; background: #43EA80; color: #000; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;"
-                    >
+                    <input type="text" id="testUsername" placeholder="ornek_kullanici"
+                        style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px;">
+                    <button onclick="updateIframe()"
+                        style="padding: 10px 20px; background: #43EA80; color: #000; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
                         Yükle
                     </button>
                 </div>
@@ -202,29 +202,23 @@
                     Butona tıkladığınızda iframe yeniden yüklenir ve form otomatik doldurulur.
                 </p>
             </div>
-            
-            <iframe 
-                id="demoIframe"
-                src="http://localhost:3000" 
-                width="100%" 
-                height="700"
-                frameborder="0"
-            ></iframe>
+
+            <iframe id="demoIframe" src="/" width="100%" height="700" frameborder="0"></iframe>
         </div>
-        
+
         <script>
             function updateIframe() {
                 const username = document.getElementById('testUsername').value;
                 const iframe = document.getElementById('demoIframe');
                 const baseUrl = window.location.origin;
-                
+
                 if (username.trim()) {
                     iframe.src = `${baseUrl}?username=${encodeURIComponent(username)}`;
                 } else {
                     iframe.src = baseUrl;
                 }
             }
-            
+
             // Enter tuşu ile de yükleme yapabilsin
             document.getElementById('testUsername').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
@@ -232,17 +226,19 @@
                 }
             });
         </script>
-        
+
         <div class="info" style="margin-top: 20px;">
             <h3>🎨 Styling İpuçları:</h3>
             <ul>
-                <li><strong>Şeffaf arka plan:</strong> Form zaten koyu temalı, kendi sitenizin arka planıyla uyum sağlar</li>
+                <li><strong>Şeffaf arka plan:</strong> Form zaten koyu temalı, kendi sitenizin arka planıyla uyum sağlar
+                </li>
                 <li><strong>Border radius:</strong> <code>border-radius: 8px</code> ile modern görünüm</li>
-                <li><strong>Shadow:</strong> <code>box-shadow: 0 4px 16px rgba(0,0,0,0.1)</code> ile derinlik kazandırın</li>
+                <li><strong>Shadow:</strong> <code>box-shadow: 0 4px 16px rgba(0,0,0,0.1)</code> ile derinlik kazandırın
+                </li>
                 <li><strong>Max width:</strong> <code>max-width: 500px</code> ile dar ekranlarda daha iyi görünüm</li>
             </ul>
         </div>
-        
+
         <div class="info" style="margin-top: 20px; background: #f0f9ff; border-left: 4px solid #43EA80;">
             <h3>✅ iFrame Avantajları:</h3>
             <ul>
@@ -255,4 +251,5 @@
         </div>
     </div>
 </body>
+
 </html>

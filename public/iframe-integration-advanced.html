@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,35 +12,35 @@
             padding: 20px;
             background: #f5f5f5;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-        
+
         h1 {
             color: #333;
             text-align: center;
             margin-bottom: 10px;
         }
-        
+
         .info {
             background: #fff;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-        
+
         .method {
             margin-bottom: 30px;
         }
-        
+
         .method h3 {
             color: #43EA80;
             margin-bottom: 10px;
         }
-        
+
         code {
             background: #f4f4f4;
             padding: 2px 6px;
@@ -47,7 +48,7 @@
             font-family: 'Courier New', monospace;
             font-size: 14px;
         }
-        
+
         pre {
             background: #1e1e1e;
             color: #d4d4d4;
@@ -56,14 +57,14 @@
             overflow-x: auto;
             margin: 10px 0;
         }
-        
+
         .demo-controls {
             background: #f8f9fa;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 20px;
         }
-        
+
         .demo-controls input {
             width: 100%;
             padding: 12px;
@@ -72,7 +73,7 @@
             font-size: 14px;
             margin-bottom: 10px;
         }
-        
+
         .demo-controls button {
             padding: 12px 24px;
             background: #43EA80;
@@ -84,32 +85,32 @@
             margin-right: 10px;
             margin-bottom: 10px;
         }
-        
+
         .demo-controls button:hover {
             background: #38d470;
         }
-        
+
         .iframe-container {
             background: #fff;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-        
+
         iframe {
             width: 100%;
             border: none;
             border-radius: 8px;
             min-height: 650px;
         }
-        
+
         .warning {
             background: #fff3cd;
             border-left: 4px solid #ffc107;
             padding: 15px;
             margin: 10px 0;
         }
-        
+
         .success {
             background: #d4edda;
             border-left: 4px solid #28a745;
@@ -118,10 +119,11 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🚀 Gelişmiş iFrame Entegrasyonu - postMessage API</h1>
-        
+
         <div class="info">
             <h2>🎯 postMessage API Neden Daha İyi?</h2>
             <div class="success">
@@ -136,15 +138,15 @@
                 </ul>
             </div>
         </div>
-        
+
         <div class="info">
             <h2>📋 Kullanım Yöntemleri</h2>
-            
+
             <div class="method">
                 <h3>Yöntem 1: postMessage ile Basit Kullanım</h3>
                 <p>Parent sayfanızda bu kodu kullanın:</p>
                 <pre>&lt;!-- HTML --&gt;
-&lt;iframe id="makiIframe" src="http://localhost:3000"&gt;&lt;/iframe&gt;
+&lt;iframe id="makiIframe" src="https://aranmatalep-production.up.railway.app"&gt;&lt;/iframe&gt;
 
 &lt;script&gt;
 // iframe yüklendikten sonra
@@ -161,7 +163,7 @@ iframe.addEventListener('load', () => {
 });
 &lt;/script&gt;</pre>
             </div>
-            
+
             <div class="method">
                 <h3>Yöntem 2: Dinamik Kullanıcı Bilgisi Gönderme</h3>
                 <pre>&lt;script&gt;
@@ -186,24 +188,24 @@ window.addEventListener('message', (event) => {
 });
 &lt;/script&gt;</pre>
             </div>
-            
+
             <div class="method">
                 <h3>Yöntem 3: URL Parametresi ile (Alternatif - Her Parametre İsmi Desteklenir)</h3>
                 <p>Artık farklı parametre isimleri otomatik tanınır:</p>
                 <pre>&lt;!-- Bunların hepsi çalışır --&gt;
-&lt;iframe src="http://localhost:3000?username=john"&gt;&lt;/iframe&gt;
-&lt;iframe src="http://localhost:3000?user=john"&gt;&lt;/iframe&gt;
-&lt;iframe src="http://localhost:3000?userName=john"&gt;&lt;/iframe&gt;
-&lt;iframe src="http://localhost:3000?user_name=john"&gt;&lt;/iframe&gt;
-&lt;iframe src="http://localhost:3000?login=john"&gt;&lt;/iframe&gt;
-&lt;iframe src="http://localhost:3000?account=john"&gt;&lt;/iframe&gt;
-&lt;iframe src="http://localhost:3000?userid=john"&gt;&lt;/iframe&gt;</pre>
+&lt;iframe src="https://aranmatalep-production.up.railway.app?username=john"&gt;&lt;/iframe&gt;
+&lt;iframe src="https://aranmatalep-production.up.railway.app?user=john"&gt;&lt;/iframe&gt;
+&lt;iframe src="https://aranmatalep-production.up.railway.app?userName=john"&gt;&lt;/iframe&gt;
+&lt;iframe src="https://aranmatalep-production.up.railway.app?user_name=john"&gt;&lt;/iframe&gt;
+&lt;iframe src="https://aranmatalep-production.up.railway.app?login=john"&gt;&lt;/iframe&gt;
+&lt;iframe src="https://aranmatalep-production.up.railway.app?account=john"&gt;&lt;/iframe&gt;
+&lt;iframe src="https://aranmatalep-production.up.railway.app?userid=john"&gt;&lt;/iframe&gt;</pre>
                 <div class="warning">
                     <strong>⚠️ Desteklenen Parametre İsimleri:</strong><br>
                     username, user, userName, user_name, login, account, userid, user_id
                 </div>
             </div>
-            
+
             <div class="method">
                 <h3>Yöntem 4: WordPress Entegrasyonu</h3>
                 <pre>&lt;?php
@@ -212,7 +214,7 @@ $current_user = wp_get_current_user();
 $username = $current_user->user_login;
 ?&gt;
 
-&lt;iframe id="makiIframe" src="http://localhost:3000"&gt;&lt;/iframe&gt;
+&lt;iframe id="makiIframe" src="https://aranmatalep-production.up.railway.app"&gt;&lt;/iframe&gt;
 
 &lt;script&gt;
 document.getElementById('makiIframe').addEventListener('load', function() {
@@ -223,7 +225,7 @@ document.getElementById('makiIframe').addEventListener('load', function() {
 });
 &lt;/script&gt;</pre>
             </div>
-            
+
             <div class="method">
                 <h3>Yöntem 5: React/Next.js Entegrasyonu</h3>
                 <pre>import { useEffect, useRef } from 'react';
@@ -252,7 +254,7 @@ export default function ContactForm() {
     return (
         &lt;iframe 
             ref={iframeRef}
-            src="http://localhost:3000"
+            src="https://aranmatalep-production.up.railway.app"
             width="100%"
             height="700"
             style={{ border: 'none', borderRadius: '8px' }}
@@ -260,7 +262,7 @@ export default function ContactForm() {
     );
 }</pre>
             </div>
-            
+
             <div class="method">
                 <h3>🔒 Güvenlik - Origin Kontrolü (Önerilen)</h3>
                 <p>Production'da mutlaka origin kontrolü yapın:</p>
@@ -277,15 +279,11 @@ iframe.addEventListener('load', () => {
 &lt;/script&gt;</pre>
             </div>
         </div>
-        
+
         <div class="demo-controls">
             <h3 style="margin-top: 0;">🧪 Canlı Test - postMessage ile Kullanıcı Adı Gönder</h3>
-            <input 
-                type="text" 
-                id="testUsername" 
-                placeholder="Kullanıcı adı girin (örn: ahmet_yilmaz)"
-                value="test_user_123"
-            >
+            <input type="text" id="testUsername" placeholder="Kullanıcı adı girin (örn: ahmet_yilmaz)"
+                value="test_user_123">
             <button onclick="sendUsernameViaPostMessage()">📤 postMessage ile Gönder</button>
             <button onclick="sendUsernameViaUrl()">🔗 URL ile Yükle</button>
             <button onclick="reloadIframe()">🔄 iFrame'i Sıfırla</button>
@@ -294,17 +292,14 @@ iframe.addEventListener('load', () => {
                 <strong>URL ile:</strong> iframe'i yeniden yükler (eski yöntem)
             </p>
         </div>
-        
+
         <div class="iframe-container">
             <h2 style="text-align: center; color: #333; margin-bottom: 20px;">
                 👇 Canlı Demo iFrame
             </h2>
-            <iframe 
-                id="demoIframe"
-                src="http://localhost:3000"
-            ></iframe>
+            <iframe id="demoIframe" src="/"></iframe>
         </div>
-        
+
         <div class="info" style="margin-top: 20px;">
             <h3>📊 Hangi Yöntemi Seçmeliyim?</h3>
             <table style="width: 100%; border-collapse: collapse;">
@@ -325,7 +320,7 @@ iframe.addEventListener('load', () => {
                 </tr>
             </table>
         </div>
-        
+
         <div class="info" style="margin-top: 20px; background: #f0f9ff; border-left: 4px solid #43EA80;">
             <h3>✨ Özet</h3>
             <ol>
@@ -337,49 +332,50 @@ iframe.addEventListener('load', () => {
             </ol>
         </div>
     </div>
-    
+
     <script>
         const iframe = document.getElementById('demoIframe');
-        
+
         function sendUsernameViaPostMessage() {
             const username = document.getElementById('testUsername').value.trim();
-            
+
             if (!username) {
                 alert('Lütfen bir kullanıcı adı girin');
                 return;
             }
-            
+
             if (iframe && iframe.contentWindow) {
                 iframe.contentWindow.postMessage({
                     type: 'setUsername',
                     username: username
                 }, '*');
-                
+
                 alert(`✅ postMessage gönderildi: "${username}"\n\niFrame'deki form otomatik dolduruldu!`);
             }
         }
-        
+
         function sendUsernameViaUrl() {
             const username = document.getElementById('testUsername').value.trim();
-            
+            const baseUrl = window.location.origin;
+
             if (username) {
-                iframe.src = `http://localhost:3000?username=${encodeURIComponent(username)}`;
+                iframe.src = `${baseUrl}?username=${encodeURIComponent(username)}`;
             } else {
-                iframe.src = 'http://localhost:3000';
+                iframe.src = baseUrl;
             }
         }
-        
+
         function reloadIframe() {
-            iframe.src = 'http://localhost:3000';
+            iframe.src = window.location.origin;
         }
-        
+
         // Enter tuşu ile gönderme
         document.getElementById('testUsername').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 sendUsernameViaPostMessage();
             }
         });
-        
+
         // iframe'den mesaj dinle (iki yönlü iletişim örneği)
         window.addEventListener('message', (event) => {
             if (event.data && event.data.type === 'iframeReady') {
@@ -388,4 +384,5 @@ iframe.addEventListener('load', () => {
         });
     </script>
 </body>
+
 </html>
