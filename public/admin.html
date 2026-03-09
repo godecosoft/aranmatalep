@@ -1,46 +1,68 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yönetim Paneli - Maki Aranma Talep</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        
+
         :root {
             --accent-start: #43EA80;
             --accent-end: #38F8D4;
             --accent-gradient: linear-gradient(135deg, var(--accent-start), var(--accent-end));
         }
-        
-        * { font-family: 'Inter', sans-serif; }
-        .logo-img { max-height: 60px; width: auto; }
-        
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .logo-img {
+            max-height: 60px;
+            width: auto;
+        }
+
         @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
         }
-        
+
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
+
         .new-request-blink {
             animation: blink 0.5s ease-in-out 3;
         }
-        
+
         .slide-up {
             animation: slideUp 0.2s ease-out;
         }
-        
+
         body {
             position: relative;
             overflow-x: hidden;
             background: linear-gradient(180deg, #0a0b0d 0%, #151720 100%);
         }
-        
+
         body::before {
             content: '';
             position: fixed;
@@ -56,42 +78,43 @@
             filter: blur(20px);
             z-index: -2;
         }
-        
+
         body::after {
-            background-image: 
+            background-image:
                 radial-gradient(circle at 20% 20%, rgba(67, 234, 128, 0.03) 0%, transparent 50%),
                 radial-gradient(circle at 80% 80%, rgba(56, 248, 212, 0.03) 0%, transparent 50%);
             z-index: -1;
         }
-        
-        
+
+
         .accent-gradient {
             background: var(--accent-gradient);
         }
-        
+
         .accent-border {
             border-image: var(--accent-gradient) 1;
         }
-        
+
         .glass-card {
             background: rgba(30, 33, 42, 0.6);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(67, 234, 128, 0.1);
             transition: all 0.2s ease;
         }
-        
+
         .glass-card:hover {
             background: rgba(30, 33, 42, 0.7);
             border-color: rgba(67, 234, 128, 0.2);
             box-shadow: 0 8px 32px rgba(67, 234, 128, 0.08);
             transform: translateY(-1px);
         }
-        
+
         .accent-glow {
             box-shadow: 0 0 20px rgba(67, 234, 128, 0.3);
         }
     </style>
 </head>
+
 <body class="min-h-screen bg-slate-900">
     <div id="loginSection" class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md">
@@ -106,37 +129,24 @@
                     <form id="loginForm" class="space-y-4">
                         <div class="space-y-2">
                             <label for="loginUsername" class="text-sm font-medium text-slate-300">Kullanıcı Adı</label>
-                            <input 
-                                type="text" 
-                                id="loginUsername" 
-                                name="username" 
-                                required 
-                                placeholder="Kullanıcı adı"
-                                class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                            >
+                            <input type="text" id="loginUsername" name="username" required placeholder="Kullanıcı adı"
+                                class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
                         </div>
 
                         <div class="space-y-2">
                             <label for="loginPassword" class="text-sm font-medium text-slate-300">Şifre</label>
-                            <input 
-                                type="password" 
-                                id="loginPassword" 
-                                name="password" 
-                                required 
-                                placeholder="Şifre"
-                                class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                            >
+                            <input type="password" id="loginPassword" name="password" required placeholder="Şifre"
+                                class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
                         </div>
 
-                        <div id="loginError" class="hidden bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-md text-sm">
+                        <div id="loginError"
+                            class="hidden bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-md text-sm">
                             Kullanıcı adı veya şifre hatalı!
                         </div>
 
-                        <button 
-                            type="submit"
+                        <button type="submit"
                             class="w-full accent-gradient text-slate-900 font-semibold py-3 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900"
-                            style="box-shadow: 0 4px 16px rgba(67, 234, 128, 0.2);"
-                        >
+                            style="box-shadow: 0 4px 16px rgba(67, 234, 128, 0.2);">
                             Giriş Yap
                         </button>
                     </form>
@@ -151,42 +161,56 @@
                 <img src="logo.png" alt="Makibet" class="logo-img mx-auto mb-4">
                 <h1 class="text-lg font-bold text-white text-center tracking-tight">Yönetim Paneli</h1>
             </div>
-            
+
             <nav class="flex-1 p-4 space-y-1.5">
-                <button onclick="switchSection('requests')" data-section="requests" class="nav-item w-full flex items-center gap-3 px-4 py-3 text-slate-900 font-semibold rounded-lg transition-all duration-200" style="background: var(--accent-gradient); box-shadow: 0 2px 12px rgba(67, 234, 128, 0.25);">
+                <button onclick="switchSection('requests')" data-section="requests"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 text-slate-900 font-semibold rounded-lg transition-all duration-200"
+                    style="background: var(--accent-gradient); box-shadow: 0 2px 12px rgba(67, 234, 128, 0.25);">
                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        <path
+                            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                     </svg>
                     <span class="font-medium">Aranma Talepleri</span>
                 </button>
-                
-                <button onclick="switchSection('users')" data-section="users" class="nav-item hidden w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-lg transition-all duration-200 font-medium">
+
+                <button onclick="switchSection('users')" data-section="users"
+                    class="nav-item hidden w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-lg transition-all duration-200 font-medium">
                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                     </svg>
                     <span class="font-medium">Kullanıcılar</span>
                 </button>
-                
-                <button onclick="switchSection('reports')" data-section="reports" class="nav-item w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-lg transition-all duration-200 font-medium">
+
+                <button onclick="switchSection('reports')" data-section="reports"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-lg transition-all duration-200 font-medium">
                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 3v18h18"/>
-                        <path d="M18 17V9"/>
-                        <path d="M13 17V5"/>
-                        <path d="M8 17v-3"/>
+                        <path d="M3 3v18h18" />
+                        <path d="M18 17V9" />
+                        <path d="M13 17V5" />
+                        <path d="M8 17v-3" />
                     </svg>
                     <span class="font-medium">Raporlar</span>
                 </button>
-            </nav>
-            
-            <div class="p-4 border-t border-slate-800/50">
-                <button id="logoutBtn" class="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all duration-200 font-medium">
+
+                <button onclick="switchSection('audit')" data-section="audit"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-lg transition-all duration-200 font-medium">
                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                        <polyline points="16 17 21 12 16 7"/>
-                        <line x1="21" y1="12" x2="9" y2="12"/>
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                    <span class="font-medium">İşlem Geçmişi</span>
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-slate-800/50">
+                <button id="logoutBtn"
+                    class="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all duration-200 font-medium">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
                     </svg>
                     <span class="font-medium">Çıkış Yap</span>
                 </button>
@@ -196,48 +220,97 @@
         <main class="flex-1 overflow-y-auto">
             <div id="requestsSection" class="section-content p-6">
                 <div class="max-w-7xl mx-auto">
+                    <!-- Dashboard Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                        <!-- Chart Card -->
+                        <div class="lg:col-span-2 glass-card rounded-xl p-6">
+                            <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                Canlı Trafik (Son 24 Saat)
+                            </h3>
+                            <div id="trafficChart" style="min-height: 250px;"></div>
+                        </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="glass-card rounded-xl p-5 group">
-                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Boşta</div>
-                    <div class="text-3xl font-bold bg-gradient-to-r from-amber-400 to-amber-300 bg-clip-text text-transparent" id="statBosta">0</div>
-                </div>
-                <div class="glass-card rounded-xl p-5 group">
-                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">İşlemde</div>
-                    <div class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent" id="statIslemde">0</div>
-                </div>
-                <div class="glass-card rounded-xl p-5 group">
-                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Arandı</div>
-                    <div class="text-3xl font-bold text-transparent bg-clip-text" style="background-image: var(--accent-gradient);" id="statArandi">0</div>
-                </div>
-                <div class="glass-card rounded-xl p-5 group">
-                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Toplam</div>
-                    <div class="text-3xl font-bold text-white" id="statToplam">0</div>
-                </div>
-            </div>
+                        <!-- Leaderboard Card -->
+                        <div class="glass-card rounded-xl p-6">
+                            <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                Operatör Karnesi
+                            </h3>
+                            <div id="operatorLeaderboard" class="space-y-4">
+                                <div class="text-center py-8 text-slate-500 text-sm">Veri yükleniyor...</div>
+                            </div>
+                        </div>
+                    </div>
 
-            <div class="glass-card rounded-xl p-4 mb-6">
-                <div class="mb-4">
-                    <input 
-                        type="text" 
-                        id="searchInput" 
-                        placeholder="İsim, telefon veya kullanıcı adına göre ara..."
-                        class="w-full px-4 py-2 bg-slate-900 border border-slate-600 rounded-md text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                    >
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    <button class="filter-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 bg-slate-800/60 text-slate-400 border border-slate-700/50 hover:bg-slate-700/60 hover:text-white" data-filter="all">Tümü</button>
-                    <button class="filter-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 text-slate-900" data-filter="boşta" style="background: var(--accent-gradient); box-shadow: 0 2px 8px rgba(67, 234, 128, 0.2);">Boşta</button>
-                    <button class="filter-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 bg-slate-800/60 text-slate-400 border border-slate-700/50 hover:bg-slate-700/60 hover:text-white" data-filter="işlemde">İşlemde</button>
-                    <button class="filter-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 bg-slate-800/60 text-slate-400 border border-slate-700/50 hover:bg-slate-700/60 hover:text-white" data-filter="arandı">Arandı</button>
-                </div>
-            </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="glass-card rounded-xl p-5 group">
+                            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Boşta</div>
+                            <div class="text-3xl font-bold bg-gradient-to-r from-amber-400 to-amber-300 bg-clip-text text-transparent"
+                                id="statBosta">0</div>
+                        </div>
+                        <div class="glass-card rounded-xl p-5 group">
+                            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">İşlemde
+                            </div>
+                            <div class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent"
+                                id="statIslemde">0</div>
+                        </div>
+                        <div class="glass-card rounded-xl p-5 group">
+                            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Arandı</div>
+                            <div class="text-3xl font-bold text-transparent bg-clip-text"
+                                style="background-image: var(--accent-gradient);" id="statArandi">0</div>
+                        </div>
+                        <div class="glass-card rounded-xl p-5 group">
+                            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Toplam</div>
+                            <div class="text-3xl font-bold text-white" id="statToplam">0</div>
+                        </div>
+                    </div>
 
-            <div id="requestsContainer" class="space-y-3">
-                <div class="bg-slate-800 rounded-lg border border-slate-700 shadow-xl p-8 text-center text-slate-400">
-                    Yükleniyor...
-                </div>
-            </div>
+                    <div class="glass-card rounded-xl p-4 mb-6 sticky top-0 z-30">
+                        <div class="flex flex-col md:flex-row gap-4 mb-4">
+                            <div class="flex-1">
+                                <input type="text" id="searchInput"
+                                    placeholder="İsim, telefon veya kullanıcı adına göre ara..."
+                                    class="w-full px-4 py-2 bg-slate-900 border border-slate-600 rounded-md text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center justify-between gap-4">
+                            <div class="flex flex-wrap gap-2">
+                                <button
+                                    class="filter-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 text-slate-900"
+                                    data-filter="all" style="background: var(--accent-gradient);">Tümü</button>
+                                <button
+                                    class="filter-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 bg-slate-800/60 text-slate-400 border border-slate-700/50 hover:bg-slate-700/60 hover:text-white"
+                                    data-filter="boşta">Boşta</button>
+                                <button
+                                    class="filter-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 bg-slate-800/60 text-slate-400 border border-slate-700/50 hover:bg-slate-700/60 hover:text-white"
+                                    data-filter="işlemde">İşlemde</button>
+                                <button
+                                    class="filter-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 bg-slate-800/60 text-slate-400 border border-slate-700/50 hover:bg-slate-700/60 hover:text-white"
+                                    data-filter="arandı">Arandı</button>
+                            </div>
+
+                            <!-- Bulk Actions Bar -->
+                            <div id="bulkActionsBar"
+                                class="hidden flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-lg animate-pulse">
+                                <span class="text-xs font-bold text-emerald-400" id="selectedCount">0 Seçili</span>
+                                <div class="h-4 w-px bg-emerald-500/30"></div>
+                                <button onclick="bulkUpdateStatus('arandı')"
+                                    class="text-xs font-bold text-white hover:text-emerald-300 transition">Hepsini
+                                    Arandı Yap</button>
+                                <button onclick="bulkDelete()"
+                                    class="text-xs font-bold text-red-400 hover:text-red-300 transition">Seçilenleri
+                                    Sil</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="requestsContainer" class="space-y-3">
+                        <div
+                            class="bg-slate-800 rounded-lg border border-slate-700 shadow-xl p-8 text-center text-slate-400">
+                            Yükleniyor...
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -246,7 +319,8 @@
                     <div class="bg-slate-800 rounded-lg border border-slate-700 shadow-xl mb-6 p-6">
                         <div class="flex items-center justify-between">
                             <h2 class="text-2xl font-semibold text-white">Kullanıcı Yönetimi</h2>
-                            <button onclick="openCreateUserModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-md transition">
+                            <button onclick="openCreateUserModal()"
+                                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-md transition">
                                 + Yeni Kullanıcı
                             </button>
                         </div>
@@ -256,79 +330,59 @@
             </div>
 
             <div id="reportsSection" class="section-content hidden p-6">
+                <!-- ... existing reports content ... -->
+            </div>
+
+            <div id="auditSection" class="section-content hidden p-6">
                 <div class="max-w-7xl mx-auto">
-                    <div class="bg-slate-800 rounded-lg border border-slate-700 shadow-xl mb-6 p-6">
-                        <h2 class="text-2xl font-semibold text-white">Raporlar</h2>
+                    <div class="glass-card rounded-xl p-6 mb-6">
+                        <h2 class="text-2xl font-bold text-white mb-2">İşlem Geçmişi (Audit Logs)</h2>
+                        <p class="text-slate-400 text-sm">Sistemdeki tüm kritik yönetici hareketleri burada listelenir.
+                        </p>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                        <div class="bg-slate-800 rounded-lg border border-slate-700 shadow-xl p-6">
-                            <h3 class="text-lg font-semibold text-white mb-4">Toplam İstatistikler</h3>
-                            <div class="space-y-3">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-slate-400">Toplam Talep:</span>
-                                    <span class="text-white font-semibold" id="reportTotalRequests">0</span>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-slate-400">Tamamlanan:</span>
-                                    <span class="text-emerald-400 font-semibold" id="reportCompletedRequests">0</span>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-slate-400">Devam Eden:</span>
-                                    <span class="text-blue-400 font-semibold" id="reportActiveRequests">0</span>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-slate-400">Ulaşılamayan:</span>
-                                    <span class="text-red-400 font-semibold" id="reportUnreachable">0</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-800 rounded-lg border border-slate-700 shadow-xl p-6">
-                            <h3 class="text-lg font-semibold text-white mb-4">Başarı Oranı</h3>
-                            <div class="flex items-center justify-center h-32">
-                                <div class="text-center">
-                                    <div class="text-4xl font-bold text-emerald-400" id="reportSuccessRate">0%</div>
-                                    <div class="text-sm text-slate-400 mt-2">Başarı Oranı</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-800 rounded-lg border border-slate-700 shadow-xl p-6">
-                            <h3 class="text-lg font-semibold text-white mb-4">Kullanıcı Performansı</h3>
-                            <div id="reportUserPerformance" class="space-y-2 max-h-32 overflow-y-auto">
-                                <div class="text-sm text-slate-400">Veri yükleniyor...</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-800 rounded-lg border border-slate-700 shadow-xl p-6">
-                        <h3 class="text-lg font-semibold text-white mb-4">Son Talepler</h3>
-                        <div id="reportRecentRequests" class="space-y-3">
-                            <div class="text-sm text-slate-400">Veri yükleniyor...</div>
-                        </div>
+                    <div class="glass-card rounded-xl overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-950/50">
+                                    <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                        Tarih</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                        Yönetici</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                        İşlem</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                        Detaylar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="auditLogsBody" class="divide-y divide-slate-800/50">
+                                <tr>
+                                    <td colspan="4" class="px-6 py-12 text-center text-slate-500">Loglar yükleniyor...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <div id="reasonModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div id="reasonModal"
+        class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-800 rounded-lg border border-slate-700 shadow-2xl w-full max-w-md">
             <div class="p-6">
                 <h3 class="text-xl font-semibold text-white mb-4">Ulaşılamama Nedeni</h3>
-                <textarea 
-                    id="reasonInput" 
-                    rows="4" 
-                    placeholder="Neden ulaşılamadığını açıklayın..."
-                    class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
-                ></textarea>
+                <textarea id="reasonInput" rows="4" placeholder="Neden ulaşılamadığını açıklayın..."
+                    class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"></textarea>
                 <input type="hidden" id="modalRequestId">
                 <div class="flex gap-3 mt-4">
-                    <button onclick="submitReason()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-md transition">
+                    <button onclick="submitReason()"
+                        class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-md transition">
                         Kaydet
                     </button>
-                    <button onclick="closeReasonModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2.5 px-4 rounded-md transition">
+                    <button onclick="closeReasonModal()"
+                        class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2.5 px-4 rounded-md transition">
                         İptal
                     </button>
                 </div>
@@ -336,34 +390,35 @@
         </div>
     </div>
 
-    <div id="customAlert" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div id="customAlert"
+        class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-800 rounded-lg border border-slate-700 shadow-2xl w-full max-w-sm">
             <div class="p-6">
                 <p id="alertMessage" class="text-white text-center mb-4"></p>
-                <button onclick="closeCustomAlert()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-md transition">
+                <button onclick="closeCustomAlert()"
+                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-md transition">
                     Tamam
                 </button>
             </div>
         </div>
     </div>
 
-    <div id="notesModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div id="notesModal"
+        class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-800 rounded-lg border border-slate-700 shadow-2xl w-full max-w-2xl">
             <div class="p-6">
                 <h3 class="text-xl font-semibold text-white mb-4">Talep Notları</h3>
                 <div id="notesList" class="space-y-3 mb-4 max-h-60 overflow-y-auto"></div>
-                <textarea 
-                    id="noteInput" 
-                    rows="3" 
-                    placeholder="Yeni not ekle..."
-                    class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
-                ></textarea>
+                <textarea id="noteInput" rows="3" placeholder="Yeni not ekle..."
+                    class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"></textarea>
                 <input type="hidden" id="noteRequestId">
                 <div class="flex gap-3 mt-4">
-                    <button onclick="saveNote()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-md transition">
+                    <button onclick="saveNote()"
+                        class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-md transition">
                         Not Ekle
                     </button>
-                    <button onclick="closeNotesModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2.5 px-4 rounded-md transition">
+                    <button onclick="closeNotesModal()"
+                        class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2.5 px-4 rounded-md transition">
                         Kapat
                     </button>
                 </div>
@@ -371,7 +426,8 @@
         </div>
     </div>
 
-    <div id="userFormModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div id="userFormModal"
+        class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-800 rounded-lg border border-slate-700 shadow-2xl w-full max-w-md">
             <div class="p-6">
                 <h3 class="text-xl font-semibold text-white mb-4" id="userFormTitle">Yeni Kullanıcı</h3>
@@ -379,24 +435,30 @@
                     <input type="hidden" id="editUserId">
                     <div class="space-y-2">
                         <label class="text-sm font-medium text-slate-300">Kullanıcı Adı</label>
-                        <input type="text" id="userUsername" required class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
+                        <input type="text" id="userUsername" required
+                            class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
                     </div>
                     <div class="space-y-2">
-                        <label class="text-sm font-medium text-slate-300">Şifre <span id="passwordOptional" class="text-slate-500">(opsiyonel - boş bırakılırsa değişmez)</span></label>
-                        <input type="password" id="userPassword" class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
+                        <label class="text-sm font-medium text-slate-300">Şifre <span id="passwordOptional"
+                                class="text-slate-500">(opsiyonel - boş bırakılırsa değişmez)</span></label>
+                        <input type="password" id="userPassword"
+                            class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
                     </div>
                     <div class="space-y-2">
                         <label class="text-sm font-medium text-slate-300">Rol</label>
-                        <select id="userRole" class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
+                        <select id="userRole"
+                            class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
                             <option value="user">Kullanıcı</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>
                     <div class="flex gap-3 mt-6">
-                        <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-md transition">
+                        <button type="submit"
+                            class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-md transition">
                             Kaydet
                         </button>
-                        <button type="button" onclick="closeUserFormModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2.5 px-4 rounded-md transition">
+                        <button type="button" onclick="closeUserFormModal()"
+                            class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2.5 px-4 rounded-md transition">
                             İptal
                         </button>
                     </div>
@@ -406,8 +468,11 @@
     </div>
 
     <audio id="notificationSound" preload="auto">
-        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE" type="audio/wav">
+        <source
+            src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE"
+            type="audio/wav">
     </audio>
     <script src="admin.js"></script>
 </body>
+
 </html>

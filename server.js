@@ -103,6 +103,16 @@ async function initializeDatabase() {
       )
     `);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(255) NOT NULL,
+        action VARCHAR(255) NOT NULL,
+        details TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Admin kullanıcısını kontrol et ve oluştur
     const [rows] = await pool.query('SELECT COUNT(*) as count FROM users WHERE role = ?', ['admin']);
     if (rows[0].count === 0) {
@@ -124,6 +134,14 @@ initializeDatabase();
 let bot = null;
 if (process.env.TELEGRAM_BOT_TOKEN) {
   bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: false });
+}
+
+async function logAction(username, action, details) {
+  try {
+    await pool.query('INSERT INTO audit_logs (username, action, details) VALUES (?, ?, ?)', [username, action, details]);
+  } catch (err) {
+    console.error('Audit log failed:', err);
+  }
 }
 
 function sendTelegramNotification(request) {
@@ -234,9 +252,10 @@ app.delete('/api/users/:id', adminMiddleware, async (req, res) => {
   const { id } = req.params;
 
   try {
-    const [userRows] = await pool.query('SELECT role FROM users WHERE id = ?', [id]);
+    const [userRows] = await pool.query('SELECT username, role FROM users WHERE id = ?', [id]);
     if (userRows.length === 0) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
 
+    const targetUser = userRows[0].username;
     const userRole = userRows[0].role;
 
     if (userRole === 'admin') {
@@ -247,6 +266,7 @@ app.delete('/api/users/:id', adminMiddleware, async (req, res) => {
     }
 
     await pool.query('DELETE FROM users WHERE id = ?', [id]);
+    logAction(req.user.username, 'Kullanıcı Silindi', `Kullanıcı: ${targetUser}`);
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Kullanıcı silinemedi' });
@@ -298,11 +318,19 @@ app.put('/api/requests/:id', authMiddleware, async (req, res) => {
   const { status, assigned_to, reason } = req.body;
 
   try {
+    const [oldRows] = await pool.query('SELECT status FROM call_requests WHERE id = ?', [id]);
+    const oldStatus = oldRows[0] ? oldRows[0].status : 'bilinmiyor';
+
     await pool.query(`
       UPDATE call_requests 
       SET status = ?, assigned_to = ?, reason = ?
       WHERE id = ?
     `, [status, assigned_to || null, reason || null, id]);
+
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    const session = activeSessions.get(token);
+    logAction(session.username, 'Talep Güncellendi', `ID: ${id}, Eski Durum: ${oldStatus}, Yeni Durum: ${status}`);
 
     res.json({ success: true });
   } catch (error) {
@@ -315,9 +343,69 @@ app.delete('/api/requests/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
   try {
     await pool.query('DELETE FROM call_requests WHERE id = ?', [id]);
+
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    const session = activeSessions.get(token);
+    logAction(session.username, 'Talep Silindi', `ID: ${id}`);
+
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Talep silinemedi' });
+  }
+});
+
+// Elite Dashboard: Bulk Actions
+app.post('/api/requests/bulk', authMiddleware, async (req, res) => {
+  const { ids, action, status } = req.body;
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  const session = activeSessions.get(token);
+
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'Geçersiz ID listesi' });
+  }
+
+  try {
+    if (action === 'delete') {
+      await pool.query('DELETE FROM call_requests WHERE id IN (?)', [ids]);
+      logAction(session.username, 'Toplu Silme', `${ids.length} adet talep silindi. IDler: ${ids.join(',')}`);
+    } else if (action === 'update' && status) {
+      await pool.query('UPDATE call_requests SET status = ? WHERE id IN (?)', [status, ids]);
+      logAction(session.username, 'Toplu Güncelleme', `${ids.length} adet talep "${status}" yapıldı.`);
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Toplu işlem başarısız oldu' });
+  }
+});
+
+// Elite Dashboard: Hourly Stats for Chart
+app.get('/api/stats/hourly', authMiddleware, async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        DATE_FORMAT(created_at, '%H:00') as hour,
+        COUNT(*) as count
+      FROM call_requests
+      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+      GROUP BY hour
+      ORDER BY hour ASC
+    `);
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ error: 'İstatistikler alınamadı' });
+  }
+});
+
+// Elite Dashboard: Audit Logs
+app.get('/api/admin/audit-logs', adminMiddleware, async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 100');
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ error: 'Loglar alınamadı' });
   }
 });
 
