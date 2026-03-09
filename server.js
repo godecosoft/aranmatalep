@@ -48,7 +48,7 @@ function authMiddleware(req, res, next) {
 }
 
 // MySQL Bağlantı Havuzu
-const pool = mysql.createPool({
+const dbConfig = process.env.MYSQL_URL || process.env.DATABASE_URL || {
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
@@ -57,7 +57,11 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
-});
+};
+
+console.log('Connecting to database using:', typeof dbConfig === 'string' ? 'Connection String' : `Host: ${dbConfig.host}`);
+
+const pool = mysql.createPool(dbConfig);
 
 // Veritabanı ve Tablo Kurulumu
 async function initializeDatabase() {
