@@ -85,11 +85,11 @@
                 <h3>Yöntem 1: Kullanıcı Adı ile iFrame (Önerilen - Otomatik Doldurma)</h3>
                 <p>Kullanıcı adını URL parametresi olarak gönderin:</p>
                 <pre>&lt;iframe 
-    src="http://localhost:3000?username=kullaniciadi123" 
-    width="100%" 
-    height="700" 
+    src="https://aranmatalep-production.up.railway.app?username=kullaniciadi123" 
+    width="2454" 
+    height="1006" 
     frameborder="0"
-    style="border: none; border-radius: 8px;"
+    style="border: none; border-radius: 8px; max-width: 100%;"
 &gt;&lt;/iframe&gt;</pre>
                 <p style="margin-top: 10px;"><strong>Not:</strong> <code>kullaniciadi123</code> yerine gerçek kullanıcı
                     adını koyun.</p>
@@ -161,7 +161,8 @@
                     <li><strong>Kullanıcı adı parametresi:</strong> <code>?username=KULLANICIADI</code> şeklinde ekleyin
                     </li>
                     <li><strong>Türkçe karakter:</strong> <code>encodeURIComponent()</code> veya
-                        <code>urlencode()</code> kullanın</li>
+                        <code>urlencode()</code> kullanın
+                    </li>
                     <li>Height değerini içeriğe göre ayarlayabilirsiniz (600-800px arası önerilir)</li>
                     <li>İçerik tam görünmüyorsa height değerini artırın</li>
                     <li><strong>Güvenlik:</strong> Kullanıcı adını URL'den alırken sanitize edin</li>
