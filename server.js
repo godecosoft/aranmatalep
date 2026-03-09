@@ -113,7 +113,21 @@ async function initializeDatabase() {
       )
     `);
 
-    // Admin kullanıcısını kontrol et ve oluştur
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS settings (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        setting_key VARCHAR(255) UNIQUE NOT NULL,
+        setting_value TEXT,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Default redirect URL ayarını ekle (yoksa)
+    await pool.query(
+      `INSERT IGNORE INTO settings (setting_key, setting_value) VALUES ('redirect_url', 'https://makibet.com')`,
+      []
+    );
+
     const [rows] = await pool.query('SELECT COUNT(*) as count FROM users WHERE role = ?', ['admin']);
     if (rows[0].count === 0) {
       const defaultUsername = process.env.ADMIN_USERNAME || 'admin';
@@ -143,6 +157,38 @@ async function logAction(username, action, details) {
     console.error('Audit log failed:', err);
   }
 }
+
+// Ayarlar API'si
+app.get('/api/settings', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT setting_key, setting_value FROM settings');
+    const settings = {};
+    rows.forEach(r => { settings[r.setting_key] = r.setting_value; });
+    res.json(settings);
+  } catch (error) {
+    res.status(500).json({ error: 'Ayarlar alınamadı' });
+  }
+});
+
+app.put('/api/settings', authMiddleware, async (req, res) => {
+  try {
+    const { key, value } = req.body;
+    if (!key) return res.status(400).json({ error: 'key gerekli' });
+    await pool.query(
+      'INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?',
+      [key, value, value]
+    );
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    const session = activeSessions.get(token);
+    const username = session ? session.username : 'unknown';
+    await logAction(username, 'Ayar Güncellendi', `${key} = ${value}`);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Ayar güncellenemedi' });
+  }
+});
+
 
 function sendTelegramNotification(request) {
   if (!bot || !process.env.TELEGRAM_CHAT_ID) {

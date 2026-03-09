@@ -107,8 +107,12 @@ function switchSection(sectionName) {
         loadUsers();
     } else if (sectionName === 'reports') {
         loadReports();
+        updateTrafficChart();
+        loadOperatorLeaderboard();
     } else if (sectionName === 'audit') {
         loadAuditLogs();
+    } else if (sectionName === 'settings') {
+        loadSettings();
     }
 }
 
@@ -1062,6 +1066,47 @@ async function loadAuditLogs() {
         `).join('');
     } catch (error) {
         body.innerHTML = '<tr><td colspan="4" class="px-6 py-12 text-center text-red-500">Loglar yüklenemedi</td></tr>';
+    }
+}
+
+// Settings Logic
+async function loadSettings() {
+    try {
+        const response = await fetch('/api/settings');
+        const settings = await response.json();
+        const input = document.getElementById('redirectUrlInput');
+        if (input && settings.redirect_url) {
+            input.value = settings.redirect_url;
+        }
+    } catch (error) {
+        console.error('Settings load error:', error);
+    }
+}
+
+async function saveRedirectUrl() {
+    const input = document.getElementById('redirectUrlInput');
+    const status = document.getElementById('settingsSaveStatus');
+    if (!input || !input.value.trim()) return;
+    try {
+        const token = sessionStorage.getItem('adminToken');
+        const response = await fetch('/api/settings', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ key: 'redirect_url', value: input.value.trim() })
+        });
+        if (response.ok) {
+            if (status) {
+                status.classList.remove('hidden');
+                setTimeout(() => status.classList.add('hidden'), 3000);
+            }
+        } else {
+            showCustomAlert('Kaydedilemedi');
+        }
+    } catch (error) {
+        showCustomAlert('Bir hata oluştu');
     }
 }
 

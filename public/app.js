@@ -51,9 +51,23 @@ window.addEventListener('message', (event) => {
     }
 });
 
-// Sayfa yüklendiğinde kullanıcı adını doldur
+// Sayfa yüklendiğinde kullanıcı adını doldur ve ayarları getir
 window.addEventListener('DOMContentLoaded', () => {
     const usernameInput = document.getElementById('username');
+
+    // Geri Dön butonuna URL'yi API'den çek
+    const returnBtn = document.getElementById('returnSiteBtn');
+    if (returnBtn) {
+        fetch('/api/settings')
+            .then(r => r.json())
+            .then(settings => {
+                if (settings.redirect_url) {
+                    returnBtn.href = settings.redirect_url;
+                }
+            })
+            .catch(() => { });
+    }
+
     if (!usernameInput) return;
 
     // Önce URL parametrelerini kontrol et
@@ -61,9 +75,6 @@ window.addEventListener('DOMContentLoaded', () => {
     if (usernameFromUrl) {
         usernameInput.value = usernameFromUrl;
         console.log('Username set from URL:', usernameFromUrl);
-        // Read-only yap ki kullanıcı değiştiremesin (isteğe bağlı)
-        // usernameInput.readOnly = true;
-        // usernameInput.style.backgroundColor = '#1e293b';
     }
 
     // Parent window'a hazır olduğumuzu bildir
@@ -71,6 +82,7 @@ window.addEventListener('DOMContentLoaded', () => {
         window.parent.postMessage({ type: 'iframeReady' }, '*');
     }
 });
+
 
 phoneInput.addEventListener('input', (e) => {
     let value = e.target.value.replace(/\D/g, '');
