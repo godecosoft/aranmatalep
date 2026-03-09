@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iFrame Test Sayfası - Kendi Sitenizi Simüle Eder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .test-controls {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .control-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border 0.3s;
+        }
+        
+        .control-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #43EA80, #38F8D4);
+            color: #000;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(67, 234, 128, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+        
+        .iframe-wrapper {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .iframe-wrapper h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+        
+        iframe {
+            width: 100%;
+            height: 750px;
+            border: 3px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #667eea15, #764ba215);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .info-box ul {
+            margin-left: 20px;
+            color: #555;
+            line-height: 1.8;
+        }
+        
+        .success-badge {
+            display: inline-block;
+            background: #48bb78;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .method-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            background: #f7fafc;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, #43EA80, #38F8D4);
+            border-color: #43EA80;
+            color: #000;
+        }
+        
+        .tab:hover:not(.active) {
+            background: #edf2f7;
+        }
+        
+        .method-content {
+            display: none;
+        }
+        
+        .method-content.active {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            .method-tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 iFrame Entegrasyon Test Sayfası</h1>
+            <p>Bu sayfa kendi sitenizi simüle eder. Gerçek entegrasyon öncesi burada test edin.</p>
+        </div>
+        
+        <div class="info-box">
+            <h3>📌 Bu Sayfa Nedir?</h3>
+            <ul>
+                <li><strong>Kendi sitenizi simüle eder</strong> - Gerçek entegrasyon öncesi test yapabilirsiniz</li>
+                <li><strong>Kullanıcı adı gönderme</strong> - postMessage ve URL yöntemlerini test edin</li>
+                <li><strong>Canlı test</strong> - Değişiklikleri anında görün</li>
+                <li><strong>Güvenli</strong> - Sadece lokal bilgisayarınızda çalışır</li>
+            </ul>
+        </div>
+        
+        <div class="test-controls">
+            <div class="method-tabs">
+                <div class="tab active" onclick="switchMethod('postmessage')">
+                    postMessage (Önerilen)
+                </div>
+                <div class="tab" onclick="switchMethod('url')">
+                    URL Parametresi
+                </div>
+            </div>
+            
+            <!-- postMessage Method -->
+            <div id="method-postmessage" class="method-content active">
+                <h3 style="margin-bottom: 15px;">🚀 postMessage Yöntemi <span class="success-badge">EN İYİ</span></h3>
+                
+                <div class="control-group">
+                    <label>Kullanıcı Adı (Kendi sitenizden gelecek):</label>
+                    <input 
+                        type="text" 
+                        id="usernamePostMessage" 
+                        placeholder="örnek: ahmet_yilmaz"
+                        value="test_kullanici_123"
+                    >
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn-primary" onclick="sendViaPostMessage()">
+                        📤 Kullanıcı Adını Gönder (postMessage)
+                    </button>
+                    <button class="btn-secondary" onclick="showPostMessageCode()">
+                        💻 Kod Örneğini Göster
+                    </button>
+                </div>
+                
+                <div id="codeExample" style="display: none; margin-top: 20px; background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: 8px; overflow-x: auto;">
+                    <p style="color: #43EA80; margin-bottom: 10px; font-weight: 600;">✅ Kendi sitenizde bu kodu kullanın:</p>
+                    <pre style="margin: 0; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.6;"><code>&lt;iframe id="makiIframe" src="http://YOUR-DOMAIN.com"&gt;&lt;/iframe&gt;
+
+&lt;script&gt;
+// Kullanıcı adınızı buradan alın (örnek)
+const username = localStorage.getItem('username'); 
+// veya: const username = '<?php echo $_SESSION["username"]; ?>';
+// veya: const username = document.querySelector('.user-name').textContent;
+
+const iframe = document.getElementById('makiIframe');
+
+iframe.addEventListener('load', () => {
+    // iframe'e kullanıcı adını gönder
+    iframe.contentWindow.postMessage({
+        type: 'setUsername',
+        username: username
+    }, '*'); // Production'da '*' yerine gerçek domain kullanın
+});
+&lt;/script&gt;</code></pre>
+                </div>
+            </div>
+            
+            <!-- URL Parameter Method -->
+            <div id="method-url" class="method-content">
+                <h3 style="margin-bottom: 15px;">🔗 URL Parametresi Yöntemi</h3>
+                
+                <div class="control-group">
+                    <label>Kullanıcı Adı:</label>
+                    <input 
+                        type="text" 
+                        id="usernameUrl" 
+                        placeholder="örnek: ahmet_yilmaz"
+                        value="test_kullanici_456"
+                    >
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn-primary" onclick="loadViaUrl()">
+                        🔗 URL ile Yükle
+                    </button>
+                    <button class="btn-secondary" onclick="showUrlCode()">
+                        💻 Kod Örneğini Göster
+                    </button>
+                </div>
+                
+                <div id="urlCodeExample" style="display: none; margin-top: 20px; background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: 8px; overflow-x: auto;">
+                    <p style="color: #43EA80; margin-bottom: 10px; font-weight: 600;">✅ Kendi sitenizde bu kodu kullanın:</p>
+                    <pre style="margin: 0; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.6;"><code>&lt;!-- Statik HTML --&gt;
+&lt;iframe src="http://YOUR-DOMAIN.com?username=kullanici_adi"&gt;&lt;/iframe&gt;
+
+&lt;!-- JavaScript ile --&gt;
+&lt;script&gt;
+const username = 'john_doe'; // Kendi sisteminizdeki kullanıcı
+const iframe = document.createElement('iframe');
+iframe.src = `http://YOUR-DOMAIN.com?username=${encodeURIComponent(username)}`;
+document.body.appendChild(iframe);
+&lt;/script&gt;
+
+&lt;!-- PHP ile --&gt;
+&lt;iframe src="http://YOUR-DOMAIN.com?username=&lt;?php echo urlencode($username); ?&gt;"&gt;&lt;/iframe&gt;</code></pre>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+                <button class="btn-danger" onclick="resetIframe()">
+                    🔄 iFrame'i Sıfırla (Temiz Başlat)
+                </button>
+            </div>
+        </div>
+        
+        <div class="iframe-wrapper">
+            <h2>👇 Canlı Test - Form iFrame'i</h2>
+            <p style="color: #666; margin-bottom: 15px;">
+                Aşağıdaki iframe kendi sitenizde nasıl görüneceğini gösterir:
+            </p>
+            <iframe 
+                id="testIframe"
+                src="http://localhost:3000"
+            ></iframe>
+        </div>
+    </div>
+    
+    <script>
+        const iframe = document.getElementById('testIframe');
+        
+        function switchMethod(method) {
+            // Tab switch
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.method-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`[onclick="switchMethod('${method}')"]`).classList.add('active');
+            document.getElementById(`method-${method}`).classList.add('active');
+        }
+        
+        function sendViaPostMessage() {
+            const username = document.getElementById('usernamePostMessage').value.trim();
+            
+            if (!username) {
+                alert('❌ Lütfen bir kullanıcı adı girin!');
+                return;
+            }
+            
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({
+                    type: 'setUsername',
+                    username: username
+                }, '*');
+                
+                alert(`✅ Başarılı!\n\nKullanıcı adı "${username}" iframe'e gönderildi.\n\nForm otomatik dolduruldu! Aşağıdaki iframe'i kontrol edin.`);
+            } else {
+                alert('❌ iframe henüz yüklenmedi, lütfen bekleyin ve tekrar deneyin.');
+            }
+        }
+        
+        function loadViaUrl() {
+            const username = document.getElementById('usernameUrl').value.trim();
+            
+            if (username) {
+                iframe.src = `http://localhost:3000?username=${encodeURIComponent(username)}`;
+                alert(`✅ iframe yeniden yüklendi!\n\nKullanıcı adı "${username}" URL parametresi olarak gönderildi.`);
+            } else {
+                iframe.src = 'http://localhost:3000';
+            }
+        }
+        
+        function resetIframe() {
+            iframe.src = 'http://localhost:3000';
+            alert('🔄 iframe sıfırlandı - temiz form yüklendi.');
+        }
+        
+        function showPostMessageCode() {
+            const codeDiv = document.getElementById('codeExample');
+            codeDiv.style.display = codeDiv.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        function showUrlCode() {
+            const codeDiv = document.getElementById('urlCodeExample');
+            codeDiv.style.display = codeDiv.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Enter tuşu ile gönderme
+        document.getElementById('usernamePostMessage').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendViaPostMessage();
+            }
+        });
+        
+        document.getElementById('usernameUrl').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loadViaUrl();
+            }
+        });
+        
+        // iframe hazır olduğunda mesaj dinle
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'iframeReady') {
+                console.log('✅ iframe hazır - veri gönderilebilir!');
+            }
+        });
+        
+        // Sayfa yüklendiğinde bilgilendirme
+        window.addEventListener('load', () => {
+            console.log('%c🎯 Test Sayfası Hazır!', 'color: #43EA80; font-size: 16px; font-weight: bold;');
+            console.log('%cÜstteki butonları kullanarak iframe entegrasyonunu test edebilirsiniz.', 'color: #666;');
+        });
+    </script>
+</body>
+</html>

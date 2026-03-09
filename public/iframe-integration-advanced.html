@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gelişmiş iFrame Entegrasyonu - postMessage Örneği</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .info {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .method {
+            margin-bottom: 30px;
+        }
+        
+        .method h3 {
+            color: #43EA80;
+            margin-bottom: 10px;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        .demo-controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .demo-controls input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .demo-controls button {
+            padding: 12px 24px;
+            background: #43EA80;
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .demo-controls button:hover {
+            background: #38d470;
+        }
+        
+        .iframe-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        iframe {
+            width: 100%;
+            border: none;
+            border-radius: 8px;
+            min-height: 650px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Gelişmiş iFrame Entegrasyonu - postMessage API</h1>
+        
+        <div class="info">
+            <h2>🎯 postMessage API Neden Daha İyi?</h2>
+            <div class="success">
+                <strong>✅ Avantajlar:</strong>
+                <ul>
+                    <li>URL'de parametre adı endişesi yok</li>
+                    <li>Güvenli (origin kontrolü yapılabilir)</li>
+                    <li>Dinamik - istediğiniz zaman veri gönderebilirsiniz</li>
+                    <li>Birden fazla veri gönderebilirsiniz (username, email, phone, etc.)</li>
+                    <li>URL'de hassas bilgi görünmez</li>
+                    <li>İki yönlü iletişim mümkün</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="info">
+            <h2>📋 Kullanım Yöntemleri</h2>
+            
+            <div class="method">
+                <h3>Yöntem 1: postMessage ile Basit Kullanım</h3>
+                <p>Parent sayfanızda bu kodu kullanın:</p>
+                <pre>&lt;!-- HTML --&gt;
+&lt;iframe id="makiIframe" src="http://localhost:3000"&gt;&lt;/iframe&gt;
+
+&lt;script&gt;
+// iframe yüklendikten sonra
+const iframe = document.getElementById('makiIframe');
+
+iframe.addEventListener('load', () => {
+    // Kullanıcı adını iframe'e gönder
+    const username = 'john_doe'; // Kendi sisteminizdeki kullanıcı
+    
+    iframe.contentWindow.postMessage({
+        type: 'setUsername',
+        username: username
+    }, '*'); // Production'da '*' yerine gerçek domain kullanın
+});
+&lt;/script&gt;</pre>
+            </div>
+            
+            <div class="method">
+                <h3>Yöntem 2: Dinamik Kullanıcı Bilgisi Gönderme</h3>
+                <pre>&lt;script&gt;
+// Kullanıcı giriş yaptıktan sonra
+function onUserLogin(user) {
+    const iframe = document.getElementById('makiIframe');
+    
+    if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({
+            type: 'setUsername',
+            username: user.username // veya user.login, user.name vs.
+        }, '*');
+    }
+}
+
+// iframe'in hazır olduğunu dinle
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'iframeReady') {
+        console.log('iframe hazır, kullanıcı bilgisi gönderilebilir');
+        onUserLogin({ username: getCurrentUser() });
+    }
+});
+&lt;/script&gt;</pre>
+            </div>
+            
+            <div class="method">
+                <h3>Yöntem 3: URL Parametresi ile (Alternatif - Her Parametre İsmi Desteklenir)</h3>
+                <p>Artık farklı parametre isimleri otomatik tanınır:</p>
+                <pre>&lt;!-- Bunların hepsi çalışır --&gt;
+&lt;iframe src="http://localhost:3000?username=john"&gt;&lt;/iframe&gt;
+&lt;iframe src="http://localhost:3000?user=john"&gt;&lt;/iframe&gt;
+&lt;iframe src="http://localhost:3000?userName=john"&gt;&lt;/iframe&gt;
+&lt;iframe src="http://localhost:3000?user_name=john"&gt;&lt;/iframe&gt;
+&lt;iframe src="http://localhost:3000?login=john"&gt;&lt;/iframe&gt;
+&lt;iframe src="http://localhost:3000?account=john"&gt;&lt;/iframe&gt;
+&lt;iframe src="http://localhost:3000?userid=john"&gt;&lt;/iframe&gt;</pre>
+                <div class="warning">
+                    <strong>⚠️ Desteklenen Parametre İsimleri:</strong><br>
+                    username, user, userName, user_name, login, account, userid, user_id
+                </div>
+            </div>
+            
+            <div class="method">
+                <h3>Yöntem 4: WordPress Entegrasyonu</h3>
+                <pre>&lt;?php
+// WordPress tema dosyanızda (functions.php veya template)
+$current_user = wp_get_current_user();
+$username = $current_user->user_login;
+?&gt;
+
+&lt;iframe id="makiIframe" src="http://localhost:3000"&gt;&lt;/iframe&gt;
+
+&lt;script&gt;
+document.getElementById('makiIframe').addEventListener('load', function() {
+    this.contentWindow.postMessage({
+        type: 'setUsername',
+        username: '&lt;?php echo esc_js($username); ?&gt;'
+    }, '*');
+});
+&lt;/script&gt;</pre>
+            </div>
+            
+            <div class="method">
+                <h3>Yöntem 5: React/Next.js Entegrasyonu</h3>
+                <pre>import { useEffect, useRef } from 'react';
+import { useUser } from '@/hooks/useUser';
+
+export default function ContactForm() {
+    const iframeRef = useRef(null);
+    const { user } = useUser(); // Kendi user hook'unuz
+    
+    useEffect(() => {
+        const handleLoad = () => {
+            if (iframeRef.current && user?.username) {
+                iframeRef.current.contentWindow.postMessage({
+                    type: 'setUsername',
+                    username: user.username
+                }, '*');
+            }
+        };
+        
+        const iframe = iframeRef.current;
+        iframe?.addEventListener('load', handleLoad);
+        
+        return () => iframe?.removeEventListener('load', handleLoad);
+    }, [user]);
+    
+    return (
+        &lt;iframe 
+            ref={iframeRef}
+            src="http://localhost:3000"
+            width="100%"
+            height="700"
+            style={{ border: 'none', borderRadius: '8px' }}
+        /&gt;
+    );
+}</pre>
+            </div>
+            
+            <div class="method">
+                <h3>🔒 Güvenlik - Origin Kontrolü (Önerilen)</h3>
+                <p>Production'da mutlaka origin kontrolü yapın:</p>
+                <pre>&lt;script&gt;
+const iframe = document.getElementById('makiIframe');
+
+iframe.addEventListener('load', () => {
+    // Sadece güvendiğiniz domain'e mesaj gönderin
+    iframe.contentWindow.postMessage({
+        type: 'setUsername',
+        username: 'john_doe'
+    }, 'https://your-domain.com'); // '*' yerine gerçek domain
+});
+&lt;/script&gt;</pre>
+            </div>
+        </div>
+        
+        <div class="demo-controls">
+            <h3 style="margin-top: 0;">🧪 Canlı Test - postMessage ile Kullanıcı Adı Gönder</h3>
+            <input 
+                type="text" 
+                id="testUsername" 
+                placeholder="Kullanıcı adı girin (örn: ahmet_yilmaz)"
+                value="test_user_123"
+            >
+            <button onclick="sendUsernameViaPostMessage()">📤 postMessage ile Gönder</button>
+            <button onclick="sendUsernameViaUrl()">🔗 URL ile Yükle</button>
+            <button onclick="reloadIframe()">🔄 iFrame'i Sıfırla</button>
+            <p style="margin-top: 10px; font-size: 13px; color: #666;">
+                <strong>postMessage:</strong> iframe'e direkt veri gönderir (sayfa yenilenmez)<br>
+                <strong>URL ile:</strong> iframe'i yeniden yükler (eski yöntem)
+            </p>
+        </div>
+        
+        <div class="iframe-container">
+            <h2 style="text-align: center; color: #333; margin-bottom: 20px;">
+                👇 Canlı Demo iFrame
+            </h2>
+            <iframe 
+                id="demoIframe"
+                src="http://localhost:3000"
+            ></iframe>
+        </div>
+        
+        <div class="info" style="margin-top: 20px;">
+            <h3>📊 Hangi Yöntemi Seçmeliyim?</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="background: #f8f9fa;">
+                    <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Yöntem</th>
+                    <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Avantaj</th>
+                    <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Kullanım</th>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>postMessage</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">En güvenli, en esnek, dinamik</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Modern siteler, SPA'ler</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>URL Parameter</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Basit, sunucu taraflı</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Statik siteler, PHP</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="info" style="margin-top: 20px; background: #f0f9ff; border-left: 4px solid #43EA80;">
+            <h3>✨ Özet</h3>
+            <ol>
+                <li><strong>postMessage kullanın</strong> - En iyi yöntem</li>
+                <li>Parent sayfanızda kullanıcı adını iframe'e gönderin</li>
+                <li>Form otomatik doldurulur</li>
+                <li>URL'de parametre adı problemi yok!</li>
+                <li>Güvenli ve esnek</li>
+            </ol>
+        </div>
+    </div>
+    
+    <script>
+        const iframe = document.getElementById('demoIframe');
+        
+        function sendUsernameViaPostMessage() {
+            const username = document.getElementById('testUsername').value.trim();
+            
+            if (!username) {
+                alert('Lütfen bir kullanıcı adı girin');
+                return;
+            }
+            
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({
+                    type: 'setUsername',
+                    username: username
+                }, '*');
+                
+                alert(`✅ postMessage gönderildi: "${username}"\n\niFrame'deki form otomatik dolduruldu!`);
+            }
+        }
+        
+        function sendUsernameViaUrl() {
+            const username = document.getElementById('testUsername').value.trim();
+            
+            if (username) {
+                iframe.src = `http://localhost:3000?username=${encodeURIComponent(username)}`;
+            } else {
+                iframe.src = 'http://localhost:3000';
+            }
+        }
+        
+        function reloadIframe() {
+            iframe.src = 'http://localhost:3000';
+        }
+        
+        // Enter tuşu ile gönderme
+        document.getElementById('testUsername').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendUsernameViaPostMessage();
+            }
+        });
+        
+        // iframe'den mesaj dinle (iki yönlü iletişim örneği)
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'iframeReady') {
+                console.log('✅ iframe hazır!');
+            }
+        });
+    </script>
+</body>
+</html>
