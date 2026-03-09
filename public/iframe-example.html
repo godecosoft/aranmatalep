@@ -216,11 +216,12 @@
             function updateIframe() {
                 const username = document.getElementById('testUsername').value;
                 const iframe = document.getElementById('demoIframe');
+                const baseUrl = window.location.origin;
                 
                 if (username.trim()) {
-                    iframe.src = `http://localhost:3000?username=${encodeURIComponent(username)}`;
+                    iframe.src = `${baseUrl}?username=${encodeURIComponent(username)}`;
                 } else {
-                    iframe.src = 'http://localhost:3000';
+                    iframe.src = baseUrl;
                 }
             }
             
