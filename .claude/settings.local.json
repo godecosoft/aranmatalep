@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(node --check \"C:\\\\Users\\\\coban\\\\OneDrive\\\\Desktop\\\\aranmatalep-main\\\\public\\\\admin.js\")"
+    ]
+  }
+}

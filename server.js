@@ -582,11 +582,13 @@ app.post('/api/upload/background', authMiddleware, async (req, res) => {
 });
 
 app.get('/api/logo', async (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
   try {
     const [rows] = await pool.query("SELECT media_data, mime_type FROM media WHERE media_key='logo'");
     if (rows.length > 0) {
       res.set('Content-Type', rows[0].mime_type);
-      res.set('Cache-Control', 'public, max-age=60');
       return res.send(rows[0].media_data);
     }
   } catch (e) {}
@@ -594,11 +596,13 @@ app.get('/api/logo', async (req, res) => {
 });
 
 app.get('/api/background', async (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
   try {
     const [rows] = await pool.query("SELECT media_data, mime_type FROM media WHERE media_key='background'");
     if (rows.length > 0) {
       res.set('Content-Type', rows[0].mime_type);
-      res.set('Cache-Control', 'public, max-age=60');
       return res.send(rows[0].media_data);
     }
   } catch (e) {}
@@ -619,11 +623,12 @@ app.get('/', async (req, res) => {
 
     const primary   = settings.primary_color  || '#43EA80';
     const secondary = settings.secondary_color || '#38F8D4';
-    const vars = `:root{--accent-start:${primary};--accent-end:${secondary};--accent-gradient:linear-gradient(135deg,${primary},${secondary});--accent-rgb:${hexToRgb(primary)};--bg-image:url('/api/background');}`;
+    const mediaV = Date.now();
+    const vars = `:root{--accent-start:${primary};--accent-end:${secondary};--accent-gradient:linear-gradient(135deg,${primary},${secondary});--accent-rgb:${hexToRgb(primary)};--bg-image:url('/api/background?v=${mediaV}');}`;
     html = html.replace('</head>', `<style>${vars}</style>\n</head>`);
 
     // Logo -> API endpoint
-    html = html.replace('id="siteLogo" src="logo.png"', 'id="siteLogo" src="/api/logo"');
+    html = html.replace('id="siteLogo" src="logo.png"', `id="siteLogo" src="/api/logo?v=${mediaV}"`);
 
     // Metinler
     if (settings.page_title)       html = html.replace('>Maki Aranma Talep</title>',                                                  `>${escHtml(settings.page_title)}</title>`);
