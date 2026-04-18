@@ -73,16 +73,11 @@ window.addEventListener('DOMContentLoaded', () => {
             }
             if (settings.secondary_color) root.style.setProperty('--accent-end', settings.secondary_color);
 
-            root.style.setProperty('--bg-image', 'url(/api/background?v=' + Date.now() + ')');
-
             const returnBtn = document.getElementById('returnSiteBtn');
             if (returnBtn && settings.redirect_url) returnBtn.href = settings.redirect_url;
 
             const backBtnText = document.getElementById('backBtnText');
             if (backBtnText && settings.back_button_text) backBtnText.textContent = settings.back_button_text;
-
-            const siteLogo = document.getElementById('siteLogo');
-            if (siteLogo) siteLogo.src = '/api/logo?v=' + Date.now();
 
             const formTitle = document.getElementById('formTitle');
             if (formTitle && settings.form_title) formTitle.textContent = settings.form_title;

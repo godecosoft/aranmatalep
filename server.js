@@ -646,6 +646,8 @@ app.get('/', async (req, res) => {
   }
 });
 
+app.get('/index.html', (req, res) => res.redirect(301, '/'));
+
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
