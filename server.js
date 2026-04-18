@@ -141,15 +141,6 @@ async function initializeDatabase() {
       );
     }
 
-    const [rows] = await pool.query('SELECT COUNT(*) as count FROM users WHERE role = ?', ['admin']);
-    if (rows[0].count === 0) {
-      const defaultUsername = process.env.ADMIN_USERNAME || 'admin';
-      const defaultPassword = process.env.ADMIN_PASSWORD || 'admin123';
-      const hashedPassword = await bcrypt.hash(defaultPassword, 10);
-      await pool.query('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', [defaultUsername, hashedPassword, 'admin']);
-      console.log('Default admin user created');
-    }
-
     console.log('MySQL Database initialized successfully');
   } catch (error) {
     console.error('Database initialization failed:', error);
@@ -221,6 +212,41 @@ ${request.username ? `💬 *Kullanıcı Adı:* ${request.username}\n` : ''}${req
   bot.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { parse_mode: 'Markdown' })
     .catch(err => console.error('Telegram error:', err));
 }
+
+// İlk kurulum: admin var mı?
+app.get('/api/setup/status', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT COUNT(*) as count FROM users WHERE role = ?', ['admin']);
+    res.json({ needsSetup: rows[0].count === 0 });
+  } catch (error) {
+    res.status(500).json({ error: 'Durum kontrol edilemedi' });
+  }
+});
+
+// İlk kurulum: ilk admin oluştur (yalnızca admin yoksa çalışır)
+app.post('/api/setup', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT COUNT(*) as count FROM users WHERE role = ?', ['admin']);
+    if (rows[0].count > 0) {
+      return res.status(403).json({ error: 'Kurulum zaten tamamlanmış' });
+    }
+
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Kullanıcı adı ve şifre zorunludur' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Şifre en az 6 karakter olmalıdır' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await pool.query('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', [username, hashedPassword, 'admin']);
+    console.log('First admin created via setup:', username);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Kurulum tamamlanamadı' });
+  }
+});
 
 app.post('/api/admin/login', async (req, res) => {
   const { username, password } = req.body;

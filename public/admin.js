@@ -9,14 +9,22 @@ let newRequestIds = new Set();
 let selectedRequests = new Set();
 let trafficChart = null;
 
-function checkAuth() {
+function showLogin() {
+    document.getElementById('setupSection').classList.add('hidden');
+    document.getElementById('loginSection').classList.remove('hidden');
+    document.getElementById('adminPanel').classList.add('hidden');
+}
+
+async function checkAuth() {
     const token = sessionStorage.getItem('adminToken');
     const username = sessionStorage.getItem('adminUsername');
     const role = sessionStorage.getItem('adminRole');
+
     if (token && username) {
         isAuthenticated = true;
         currentUsername = username;
         currentUserRole = role;
+        document.getElementById('setupSection').classList.add('hidden');
         document.getElementById('loginSection').classList.add('hidden');
         document.getElementById('adminPanel').classList.remove('hidden');
         if (role === 'admin') {
@@ -25,10 +33,79 @@ function checkAuth() {
         loadRequests();
     } else {
         isAuthenticated = false;
-        document.getElementById('loginSection').classList.remove('hidden');
-        document.getElementById('adminPanel').classList.add('hidden');
+        // DB'de admin var mı kontrol et
+        try {
+            const res = await fetch('/api/setup/status');
+            const { needsSetup } = await res.json();
+            if (needsSetup) {
+                document.getElementById('setupSection').classList.remove('hidden');
+                document.getElementById('loginSection').classList.add('hidden');
+            } else {
+                showLogin();
+            }
+        } catch {
+            showLogin();
+        }
     }
 }
+
+// Kurulum formu
+document.getElementById('setupForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('setupUsername').value.trim();
+    const password = document.getElementById('setupPassword').value;
+    const confirm = document.getElementById('setupPasswordConfirm').value;
+    const errorEl = document.getElementById('setupError');
+
+    errorEl.classList.add('hidden');
+
+    if (password !== confirm) {
+        errorEl.textContent = 'Şifreler eşleşmiyor!';
+        errorEl.classList.remove('hidden');
+        return;
+    }
+    if (password.length < 6) {
+        errorEl.textContent = 'Şifre en az 6 karakter olmalıdır.';
+        errorEl.classList.remove('hidden');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/setup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            // Kurulum tamam, otomatik giriş yap
+            const loginRes = await fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const loginData = await loginRes.json();
+            if (loginRes.ok) {
+                sessionStorage.setItem('adminToken', loginData.token);
+                sessionStorage.setItem('adminUsername', username);
+                sessionStorage.setItem('adminRole', loginData.role);
+                currentUsername = username;
+                currentUserRole = loginData.role;
+                isAuthenticated = true;
+                document.getElementById('setupSection').classList.add('hidden');
+                document.getElementById('adminPanel').classList.remove('hidden');
+                document.querySelectorAll('[data-section="users"]').forEach(el => el.classList.remove('hidden'));
+                loadRequests();
+            }
+        } else {
+            errorEl.textContent = data.error || 'Kurulum başarısız.';
+            errorEl.classList.remove('hidden');
+        }
+    } catch {
+        errorEl.textContent = 'Sunucuya bağlanılamadı.';
+        errorEl.classList.remove('hidden');
+    }
+});
 
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -51,6 +128,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             currentUsername = username;
             currentUserRole = data.role;
             isAuthenticated = true;
+            document.getElementById('setupSection').classList.add('hidden');
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('adminPanel').classList.remove('hidden');
             if (data.role === 'admin') {
@@ -73,8 +151,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
     currentUsername = '';
     currentUserRole = '';
     isAuthenticated = false;
-    document.getElementById('loginSection').classList.remove('hidden');
-    document.getElementById('adminPanel').classList.add('hidden');
+    showLogin();
 });
 
 function switchSection(sectionName) {
