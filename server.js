@@ -122,6 +122,16 @@ async function initializeDatabase() {
       )
     `);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS media (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        media_key VARCHAR(255) UNIQUE NOT NULL,
+        media_data LONGBLOB NOT NULL,
+        mime_type VARCHAR(100) NOT NULL DEFAULT 'image/png',
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
     // Default ayarları ekle (yoksa)
     const defaultSettings = [
       ['redirect_url', 'https://makibet.com'],
@@ -531,24 +541,104 @@ app.post('/api/requests/:id/notes', authMiddleware, async (req, res) => {
 
 const fs = require('fs');
 
-app.get('/', (req, res) => {
-  const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
-  const indexPath = path.join(__dirname, 'public', 'index.html');
+function escHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
-  fs.readFile(indexPath, 'utf8', (err, data) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send('Error loading page');
-    }
+function hexToRgb(hex) {
+  const r = /^#?([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/i.exec(hex);
+  return r ? `${parseInt(r[1],16)}, ${parseInt(r[2],16)}, ${parseInt(r[3],16)}` : '67, 234, 128';
+}
 
-    // Inject the allowed origin before the app.js script
-    const injectedData = data.replace(
-      '</body>',
-      `\n    <script>window.ALLOWED_ORIGIN = "${allowedOrigin}";</script>\n</body>`
+// Logo ve arka plan yükleme (binary BLOB olarak sakla)
+app.post('/api/upload/logo', authMiddleware, async (req, res) => {
+  const { data } = req.body;
+  if (!data) return res.status(400).json({ error: 'data gerekli' });
+  try {
+    const m = data.match(/^data:([^;]+);base64,(.+)$/);
+    if (!m) return res.status(400).json({ error: 'Geçersiz format' });
+    const buf = Buffer.from(m[2], 'base64');
+    await pool.query(
+      'INSERT INTO media (media_key, media_data, mime_type) VALUES (?,?,?) ON DUPLICATE KEY UPDATE media_data=?, mime_type=?',
+      ['logo', buf, m[1], buf, m[1]]
     );
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: 'Yükleme başarısız' }); }
+});
 
-    res.send(injectedData);
-  });
+app.post('/api/upload/background', authMiddleware, async (req, res) => {
+  const { data } = req.body;
+  if (!data) return res.status(400).json({ error: 'data gerekli' });
+  try {
+    const m = data.match(/^data:([^;]+);base64,(.+)$/);
+    if (!m) return res.status(400).json({ error: 'Geçersiz format' });
+    const buf = Buffer.from(m[2], 'base64');
+    await pool.query(
+      'INSERT INTO media (media_key, media_data, mime_type) VALUES (?,?,?) ON DUPLICATE KEY UPDATE media_data=?, mime_type=?',
+      ['background', buf, m[1], buf, m[1]]
+    );
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: 'Yükleme başarısız' }); }
+});
+
+app.get('/api/logo', async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT media_data, mime_type FROM media WHERE media_key='logo'");
+    if (rows.length > 0) {
+      res.set('Content-Type', rows[0].mime_type);
+      res.set('Cache-Control', 'public, max-age=60');
+      return res.send(rows[0].media_data);
+    }
+  } catch (e) {}
+  res.sendFile(path.join(__dirname, 'public', 'logo.png'));
+});
+
+app.get('/api/background', async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT media_data, mime_type FROM media WHERE media_key='background'");
+    if (rows.length > 0) {
+      res.set('Content-Type', rows[0].mime_type);
+      res.set('Cache-Control', 'public, max-age=60');
+      return res.send(rows[0].media_data);
+    }
+  } catch (e) {}
+  res.sendFile(path.join(__dirname, 'public', 'background.png'));
+});
+
+// Ana form sayfası: branding ayarlarını server-side inject et (FOUC önleme)
+app.get('/', async (req, res) => {
+  const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
+  try {
+    let html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8');
+
+    let settings = {};
+    try {
+      const [rows] = await pool.query('SELECT setting_key, setting_value FROM settings');
+      rows.forEach(r => { settings[r.setting_key] = r.setting_value; });
+    } catch (e) {}
+
+    const primary   = settings.primary_color  || '#43EA80';
+    const secondary = settings.secondary_color || '#38F8D4';
+    const vars = `:root{--accent-start:${primary};--accent-end:${secondary};--accent-gradient:linear-gradient(135deg,${primary},${secondary});--accent-rgb:${hexToRgb(primary)};--bg-image:url('/api/background');}`;
+    html = html.replace('</head>', `<style>${vars}</style>\n</head>`);
+
+    // Logo -> API endpoint
+    html = html.replace('id="siteLogo" src="logo.png"', 'id="siteLogo" src="/api/logo"');
+
+    // Metinler
+    if (settings.page_title)       html = html.replace('>Maki Aranma Talep</title>',                                                  `>${escHtml(settings.page_title)}</title>`);
+    if (settings.form_title)       html = html.replace('>Maki Aranma Talep</h1>',                                                     `>${escHtml(settings.form_title)}</h1>`);
+    if (settings.form_subtitle)    html = html.replace('>Formu doldurun, en kısa sürede arayalım</p>',                                `>${escHtml(settings.form_subtitle)}</p>`);
+    if (settings.button_text)      html = html.replace('>Gönder</span>',                                                              `>${escHtml(settings.button_text)}</span>`);
+    if (settings.back_button_text) html = html.replace('>Güncel Siteye Geri Dön</span>',                                             `>${escHtml(settings.back_button_text)}</span>`);
+    if (settings.redirect_url)     html = html.replace('id="returnSiteBtn" href="#"', `id="returnSiteBtn" href="${escHtml(settings.redirect_url)}"`);
+
+    html = html.replace('</body>', `\n    <script>window.ALLOWED_ORIGIN = "${allowedOrigin}";</script>\n</body>`);
+    res.send(html);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error loading page');
+  }
 });
 
 app.get('/admin', (req, res) => {

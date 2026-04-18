@@ -1182,15 +1182,11 @@ async function loadSettings() {
             if (el && settings[key]) el.value = settings[key];
         }
 
-        if (settings.logo_data) {
-            const preview = document.getElementById('brandingLogoPreview');
-            if (preview) preview.src = settings.logo_data;
-        }
+        const logoPreview = document.getElementById('brandingLogoPreview');
+        if (logoPreview) logoPreview.src = '/api/logo?' + Date.now();
 
-        if (settings.background_data) {
-            const bgPreview = document.getElementById('brandingBgPreview');
-            if (bgPreview) bgPreview.src = settings.background_data;
-        }
+        const bgPreview = document.getElementById('brandingBgPreview');
+        if (bgPreview) bgPreview.src = '/api/background?' + Date.now();
 
         // Renk picker <-> hex senkronizasyonu
         syncColorInputs('primaryColorPicker', 'primaryColorHex');
@@ -1263,9 +1259,15 @@ async function handleLogoUpload(event) {
     reader.onload = async (e) => {
         const base64 = e.target.result;
         try {
-            await saveSetting('logo_data', base64);
+            const token = sessionStorage.getItem('adminToken');
+            const res = await fetch('/api/upload/logo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ data: base64 })
+            });
+            if (!res.ok) throw new Error('Upload failed');
             const preview = document.getElementById('brandingLogoPreview');
-            if (preview) preview.src = base64;
+            if (preview) preview.src = '/api/logo?' + Date.now();
             const statusEl = document.getElementById('logoUploadStatus');
             if (statusEl) {
                 statusEl.classList.remove('hidden');
@@ -1289,16 +1291,22 @@ async function handleBackgroundUpload(event) {
     reader.onload = async (e) => {
         const base64 = e.target.result;
         try {
-            await saveSetting('background_data', base64);
+            const token = sessionStorage.getItem('adminToken');
+            const res = await fetch('/api/upload/background', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ data: base64 })
+            });
+            if (!res.ok) throw new Error('Upload failed');
             const preview = document.getElementById('brandingBgPreview');
-            if (preview) preview.src = base64;
+            if (preview) preview.src = '/api/background?' + Date.now();
             const statusEl = document.getElementById('bgUploadStatus');
             if (statusEl) {
                 statusEl.classList.remove('hidden');
                 setTimeout(() => statusEl.classList.add('hidden'), 3000);
             }
         } catch {
-            showCustomAlert('Arka plan yuklenemedi.');
+            showCustomAlert('Arka plan yüklenemedi.');
         }
     };
     reader.readAsDataURL(file);
