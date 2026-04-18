@@ -540,6 +540,8 @@ app.post('/api/requests/:id/notes', authMiddleware, async (req, res) => {
 });
 
 const fs = require('fs');
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 function escHtml(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -562,6 +564,9 @@ app.post('/api/upload/logo', authMiddleware, async (req, res) => {
       'INSERT INTO media (media_key, media_data, mime_type) VALUES (?,?,?) ON DUPLICATE KEY UPDATE media_data=?, mime_type=?',
       ['logo', buf, m[1], buf, m[1]]
     );
+    const ext = m[1].split('/')[1] || 'png';
+    fs.writeFileSync(path.join(UPLOADS_DIR, `logo.${ext}`), buf);
+    fs.writeFileSync(path.join(UPLOADS_DIR, 'logo.meta'), m[1]);
     res.json({ success: true });
   } catch (e) { res.status(500).json({ error: 'Yükleme başarısız' }); }
 });
@@ -577,9 +582,26 @@ app.post('/api/upload/background', authMiddleware, async (req, res) => {
       'INSERT INTO media (media_key, media_data, mime_type) VALUES (?,?,?) ON DUPLICATE KEY UPDATE media_data=?, mime_type=?',
       ['background', buf, m[1], buf, m[1]]
     );
+    const ext = m[1].split('/')[1] || 'png';
+    fs.writeFileSync(path.join(UPLOADS_DIR, `background.${ext}`), buf);
+    fs.writeFileSync(path.join(UPLOADS_DIR, 'background.meta'), m[1]);
     res.json({ success: true });
   } catch (e) { res.status(500).json({ error: 'Yükleme başarısız' }); }
 });
+
+function serveUploadFallback(key, req, res, staticFile) {
+  const metaPath = path.join(UPLOADS_DIR, `${key}.meta`);
+  if (fs.existsSync(metaPath)) {
+    const mime = fs.readFileSync(metaPath, 'utf8').trim();
+    const ext = mime.split('/')[1] || 'png';
+    const imgPath = path.join(UPLOADS_DIR, `${key}.${ext}`);
+    if (fs.existsSync(imgPath)) {
+      res.set('Content-Type', mime);
+      return res.send(fs.readFileSync(imgPath));
+    }
+  }
+  res.sendFile(staticFile);
+}
 
 app.get('/api/logo', async (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
@@ -592,7 +614,7 @@ app.get('/api/logo', async (req, res) => {
       return res.send(rows[0].media_data);
     }
   } catch (e) {}
-  res.sendFile(path.join(__dirname, 'public', 'logo.png'));
+  serveUploadFallback('logo', req, res, path.join(__dirname, 'public', 'logo.png'));
 });
 
 app.get('/api/background', async (req, res) => {
@@ -606,7 +628,7 @@ app.get('/api/background', async (req, res) => {
       return res.send(rows[0].media_data);
     }
   } catch (e) {}
-  res.sendFile(path.join(__dirname, 'public', 'background.png'));
+  serveUploadFallback('background', req, res, path.join(__dirname, 'public', 'background.png'));
 });
 
 // Ana form sayfası: branding ayarlarını server-side inject et (FOUC önleme)
@@ -624,8 +646,13 @@ app.get('/', async (req, res) => {
     const primary   = settings.primary_color  || '#43EA80';
     const secondary = settings.secondary_color || '#38F8D4';
     const mediaV = Date.now();
-    const vars = `:root{--accent-start:${primary};--accent-end:${secondary};--accent-gradient:linear-gradient(135deg,${primary},${secondary});--accent-rgb:${hexToRgb(primary)};--bg-image:url('/api/background?v=${mediaV}');}`;
-    html = html.replace('</head>', `<style>${vars}</style>\n</head>`);
+
+    // CSS değerlerini doğrudan kaynak HTML içinde değiştir (sıfır flash garantisi)
+    html = html.replace('--accent-start: #43EA80', `--accent-start: ${primary}`);
+    html = html.replace('--accent-end: #38F8D4', `--accent-end: ${secondary}`);
+    html = html.replace('--accent-gradient: linear-gradient(135deg, var(--accent-start), var(--accent-end))', `--accent-gradient: linear-gradient(135deg, ${primary}, ${secondary})`);
+    html = html.replace('--accent-rgb: 67, 234, 128', `--accent-rgb: ${hexToRgb(primary)}`);
+    html = html.replace("background-image: var(--bg-image, url('background.png'))", `background-image: url('/api/background?v=${mediaV}')`);
 
     // Logo -> API endpoint
     html = html.replace('id="siteLogo" src="logo.png"', `id="siteLogo" src="/api/logo?v=${mediaV}"`);
