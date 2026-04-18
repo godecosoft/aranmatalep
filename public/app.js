@@ -56,13 +56,24 @@ window.addEventListener('DOMContentLoaded', () => {
     const usernameInput = document.getElementById('username');
 
     // Branding ayarlarını API'den çek ve uygula
+    function hexToRgb(hex) {
+        const r = /^#?([a-fd]{2})([a-fd]{2})([a-fd]{2})$/i.exec(hex);
+        return r ? parseInt(r[1],16) + ', ' + parseInt(r[2],16) + ', ' + parseInt(r[3],16) : null;
+    }
+
     fetch('/api/settings')
         .then(r => r.json())
         .then(settings => {
             const root = document.documentElement;
 
-            if (settings.primary_color) root.style.setProperty('--accent-start', settings.primary_color);
+            if (settings.primary_color) {
+                root.style.setProperty('--accent-start', settings.primary_color);
+                const rgb = hexToRgb(settings.primary_color);
+                if (rgb) root.style.setProperty('--accent-rgb', rgb);
+            }
             if (settings.secondary_color) root.style.setProperty('--accent-end', settings.secondary_color);
+
+            if (settings.background_data) root.style.setProperty('--bg-image', 'url(' + settings.background_data + ')');
 
             const returnBtn = document.getElementById('returnSiteBtn');
             if (returnBtn && settings.redirect_url) returnBtn.href = settings.redirect_url;

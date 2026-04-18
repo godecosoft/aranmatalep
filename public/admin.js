@@ -1187,6 +1187,11 @@ async function loadSettings() {
             if (preview) preview.src = settings.logo_data;
         }
 
+        if (settings.background_data) {
+            const bgPreview = document.getElementById('brandingBgPreview');
+            if (bgPreview) bgPreview.src = settings.background_data;
+        }
+
         // Renk picker <-> hex senkronizasyonu
         syncColorInputs('primaryColorPicker', 'primaryColorHex');
         syncColorInputs('secondaryColorPicker', 'secondaryColorHex');
@@ -1268,6 +1273,32 @@ async function handleLogoUpload(event) {
             }
         } catch {
             showCustomAlert('Logo yüklenemedi.');
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+async function handleBackgroundUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+        showCustomAlert('Arka plan dosyasi 5 MB'dan buyuk olamaz.');
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const base64 = e.target.result;
+        try {
+            await saveSetting('background_data', base64);
+            const preview = document.getElementById('brandingBgPreview');
+            if (preview) preview.src = base64;
+            const statusEl = document.getElementById('bgUploadStatus');
+            if (statusEl) {
+                statusEl.classList.remove('hidden');
+                setTimeout(() => statusEl.classList.add('hidden'), 3000);
+            }
+        } catch {
+            showCustomAlert('Arka plan yuklenemedi.');
         }
     };
     reader.readAsDataURL(file);

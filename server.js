@@ -16,7 +16,7 @@ const activeSessions = new Map();
 app.set('trust proxy', 1);
 
 app.use(cors());
-app.use(express.json({ limit: '5mb' }));
+app.use(express.json({ limit: '10mb' }));
 app.use(express.static('public'));
 
 // iFrame entegrasyonu için header'lar (Domain Kısıtlaması)
@@ -133,6 +133,7 @@ async function initializeDatabase() {
       ['back_button_text', 'Güncel Siteye Geri Dön'],
       ['page_title', 'Maki Aranma Talep'],
       ['logo_data', ''],
+      ['background_data', ''],
     ];
     for (const [key, value] of defaultSettings) {
       await pool.query(
@@ -140,6 +141,11 @@ async function initializeDatabase() {
         [key, value]
       );
     }
+
+    // TEXT kolonunu MEDIUMTEXT yap (base64 gorsel icin yeterli boyut)
+    try {
+      await pool.query('ALTER TABLE settings MODIFY COLUMN setting_value MEDIUMTEXT');
+    } catch (e) { /* zaten dogru tipte olabilir */ }
 
     console.log('MySQL Database initialized successfully');
   } catch (error) {
