@@ -1282,7 +1282,7 @@ async function handleBackgroundUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-        showCustomAlert('Arka plan dosyasi 5 MB'dan buyuk olamaz.');
+        showCustomAlert("Arka plan dosyasi 5 MB'dan buyuk olamaz.");
         return;
     }
     const reader = new FileReader();
