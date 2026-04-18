@@ -16,7 +16,7 @@ const activeSessions = new Map();
 app.set('trust proxy', 1);
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 app.use(express.static('public'));
 
 // iFrame entegrasyonu için header'lar (Domain Kısıtlaması)
@@ -122,11 +122,24 @@ async function initializeDatabase() {
       )
     `);
 
-    // Default redirect URL ayarını ekle (yoksa)
-    await pool.query(
-      `INSERT IGNORE INTO settings (setting_key, setting_value) VALUES ('redirect_url', 'https://makibet.com')`,
-      []
-    );
+    // Default ayarları ekle (yoksa)
+    const defaultSettings = [
+      ['redirect_url', 'https://makibet.com'],
+      ['primary_color', '#43EA80'],
+      ['secondary_color', '#38F8D4'],
+      ['form_title', 'Maki Aranma Talep'],
+      ['form_subtitle', 'Formu doldurun, en kısa sürede arayalım'],
+      ['button_text', 'Gönder'],
+      ['back_button_text', 'Güncel Siteye Geri Dön'],
+      ['page_title', 'Maki Aranma Talep'],
+      ['logo_data', ''],
+    ];
+    for (const [key, value] of defaultSettings) {
+      await pool.query(
+        `INSERT IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)`,
+        [key, value]
+      );
+    }
 
     const [rows] = await pool.query('SELECT COUNT(*) as count FROM users WHERE role = ?', ['admin']);
     if (rows[0].count === 0) {

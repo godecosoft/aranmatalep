@@ -55,18 +55,36 @@ window.addEventListener('message', (event) => {
 window.addEventListener('DOMContentLoaded', () => {
     const usernameInput = document.getElementById('username');
 
-    // Geri Dön butonuna URL'yi API'den çek
-    const returnBtn = document.getElementById('returnSiteBtn');
-    if (returnBtn) {
-        fetch('/api/settings')
-            .then(r => r.json())
-            .then(settings => {
-                if (settings.redirect_url) {
-                    returnBtn.href = settings.redirect_url;
-                }
-            })
-            .catch(() => { });
-    }
+    // Branding ayarlarını API'den çek ve uygula
+    fetch('/api/settings')
+        .then(r => r.json())
+        .then(settings => {
+            const root = document.documentElement;
+
+            if (settings.primary_color) root.style.setProperty('--accent-start', settings.primary_color);
+            if (settings.secondary_color) root.style.setProperty('--accent-end', settings.secondary_color);
+
+            const returnBtn = document.getElementById('returnSiteBtn');
+            if (returnBtn && settings.redirect_url) returnBtn.href = settings.redirect_url;
+
+            const backBtnText = document.getElementById('backBtnText');
+            if (backBtnText && settings.back_button_text) backBtnText.textContent = settings.back_button_text;
+
+            const siteLogo = document.getElementById('siteLogo');
+            if (siteLogo && settings.logo_data) siteLogo.src = settings.logo_data;
+
+            const formTitle = document.getElementById('formTitle');
+            if (formTitle && settings.form_title) formTitle.textContent = settings.form_title;
+
+            const formSubtitle = document.getElementById('formSubtitle');
+            if (formSubtitle && settings.form_subtitle) formSubtitle.textContent = settings.form_subtitle;
+
+            const submitBtnText = document.getElementById('submitBtnText');
+            if (submitBtnText && settings.button_text) submitBtnText.textContent = settings.button_text;
+
+            if (settings.page_title) document.title = settings.page_title;
+        })
+        .catch(() => { });
 
     if (!usernameInput) return;
 

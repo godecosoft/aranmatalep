@@ -1074,13 +1074,126 @@ async function loadSettings() {
     try {
         const response = await fetch('/api/settings');
         const settings = await response.json();
-        const input = document.getElementById('redirectUrlInput');
-        if (input && settings.redirect_url) {
-            input.value = settings.redirect_url;
+
+        const redirectInput = document.getElementById('redirectUrlInput');
+        if (redirectInput && settings.redirect_url) redirectInput.value = settings.redirect_url;
+
+        // Branding alanlarını doldur
+        const primaryPicker = document.getElementById('primaryColorPicker');
+        const primaryHex = document.getElementById('primaryColorHex');
+        if (settings.primary_color) {
+            if (primaryPicker) primaryPicker.value = settings.primary_color;
+            if (primaryHex) primaryHex.value = settings.primary_color;
         }
+
+        const secondaryPicker = document.getElementById('secondaryColorPicker');
+        const secondaryHex = document.getElementById('secondaryColorHex');
+        if (settings.secondary_color) {
+            if (secondaryPicker) secondaryPicker.value = settings.secondary_color;
+            if (secondaryHex) secondaryHex.value = settings.secondary_color;
+        }
+
+        const fields = [
+            ['brandingPageTitle', 'page_title'],
+            ['brandingFormTitle', 'form_title'],
+            ['brandingFormSubtitle', 'form_subtitle'],
+            ['brandingButtonText', 'button_text'],
+            ['brandingBackBtnText', 'back_button_text'],
+        ];
+        for (const [id, key] of fields) {
+            const el = document.getElementById(id);
+            if (el && settings[key]) el.value = settings[key];
+        }
+
+        if (settings.logo_data) {
+            const preview = document.getElementById('brandingLogoPreview');
+            if (preview) preview.src = settings.logo_data;
+        }
+
+        // Renk picker <-> hex senkronizasyonu
+        syncColorInputs('primaryColorPicker', 'primaryColorHex');
+        syncColorInputs('secondaryColorPicker', 'secondaryColorHex');
     } catch (error) {
         console.error('Settings load error:', error);
     }
+}
+
+function syncColorInputs(pickerId, hexId) {
+    const picker = document.getElementById(pickerId);
+    const hex = document.getElementById(hexId);
+    if (!picker || !hex) return;
+
+    picker.addEventListener('input', () => { hex.value = picker.value; });
+    hex.addEventListener('input', () => {
+        if (/^#[0-9A-Fa-f]{6}$/.test(hex.value)) picker.value = hex.value;
+    });
+}
+
+async function saveSetting(key, value) {
+    const token = sessionStorage.getItem('adminToken');
+    const response = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ key, value })
+    });
+    if (!response.ok) throw new Error('Kayıt hatası');
+}
+
+async function saveBrandingSettings() {
+    const statusEl = document.getElementById('brandingSaveStatus');
+    try {
+        const primaryColor = document.getElementById('primaryColorHex')?.value?.trim() || '#43EA80';
+        const secondaryColor = document.getElementById('secondaryColorHex')?.value?.trim() || '#38F8D4';
+
+        const saves = [
+            saveSetting('primary_color', primaryColor),
+            saveSetting('secondary_color', secondaryColor),
+            saveSetting('page_title', document.getElementById('brandingPageTitle')?.value?.trim() || ''),
+            saveSetting('form_title', document.getElementById('brandingFormTitle')?.value?.trim() || ''),
+            saveSetting('form_subtitle', document.getElementById('brandingFormSubtitle')?.value?.trim() || ''),
+            saveSetting('button_text', document.getElementById('brandingButtonText')?.value?.trim() || ''),
+            saveSetting('back_button_text', document.getElementById('brandingBackBtnText')?.value?.trim() || ''),
+        ];
+        await Promise.all(saves);
+
+        // Admin panelde canlı önizleme
+        document.documentElement.style.setProperty('--accent-start', primaryColor);
+        document.documentElement.style.setProperty('--accent-end', secondaryColor);
+
+        if (statusEl) {
+            statusEl.classList.remove('hidden');
+            setTimeout(() => statusEl.classList.add('hidden'), 3000);
+        }
+    } catch (error) {
+        showCustomAlert('Branding kaydedilemedi');
+    }
+}
+
+async function handleLogoUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+        showCustomAlert('Logo dosyası 2 MB\'dan büyük olamaz.');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const base64 = e.target.result;
+        try {
+            await saveSetting('logo_data', base64);
+            const preview = document.getElementById('brandingLogoPreview');
+            if (preview) preview.src = base64;
+            const statusEl = document.getElementById('logoUploadStatus');
+            if (statusEl) {
+                statusEl.classList.remove('hidden');
+                setTimeout(() => statusEl.classList.add('hidden'), 3000);
+            }
+        } catch {
+            showCustomAlert('Logo yüklenemedi.');
+        }
+    };
+    reader.readAsDataURL(file);
 }
 
 async function saveRedirectUrl() {
