@@ -17,7 +17,24 @@ app.set('trust proxy', 1);
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
-app.use(express.static('public'));
+
+// Template-rendered sayfalar static'ten ÖNCE kayıt edilmeli
+// ki public/index.html ve public/admin.html raw şekilde servis edilmesin.
+// Gerçek handler'lar dosyanın alt kısmında renderBrandedHtml ile tanımlı.
+app.get(['/', '/index.html'], async (req, res, next) => {
+  if (typeof renderBrandedHtml !== 'function') return next();
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  try { res.send(await renderBrandedHtml('index.html')); }
+  catch (e) { console.error(e); res.status(500).send('Error'); }
+});
+app.get(['/admin', '/admin.html'], async (req, res, next) => {
+  if (typeof renderBrandedHtml !== 'function') return next();
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  try { res.send(await renderBrandedHtml('admin.html')); }
+  catch (e) { console.error(e); res.status(500).send('Error'); }
+});
+
+app.use(express.static('public', { index: false }));
 
 // iFrame entegrasyonu için header'lar (Domain Kısıtlaması)
 app.use((req, res, next) => {
@@ -552,6 +569,76 @@ function hexToRgb(hex) {
   return r ? `${parseInt(r[1],16)}, ${parseInt(r[2],16)}, ${parseInt(r[3],16)}` : '67, 234, 128';
 }
 
+// Medya (logo/background) base64 önbelleği — HTML içine inline gömmek için
+const _mediaCache = { logo: undefined, background: undefined };
+
+function invalidateMediaCache(key) {
+  if (key) _mediaCache[key] = undefined;
+  else { _mediaCache.logo = undefined; _mediaCache.background = undefined; }
+}
+
+async function getMediaDataUri(key) {
+  if (_mediaCache[key] !== undefined) return _mediaCache[key];
+  try {
+    const [rows] = await pool.query('SELECT media_data, mime_type FROM media WHERE media_key = ?', [key]);
+    if (rows.length > 0) {
+      const uri = `data:${rows[0].mime_type};base64,${rows[0].media_data.toString('base64')}`;
+      _mediaCache[key] = uri;
+      return uri;
+    }
+  } catch (e) {}
+  _mediaCache[key] = null;
+  return null;
+}
+
+async function renderBrandedHtml(fileName) {
+  let html = fs.readFileSync(path.join(__dirname, 'public', fileName), 'utf8');
+
+  let settings = {};
+  try {
+    const [rows] = await pool.query('SELECT setting_key, setting_value FROM settings');
+    rows.forEach(r => { settings[r.setting_key] = r.setting_value; });
+  } catch (e) {}
+
+  const primary   = settings.primary_color  || '#43EA80';
+  const secondary = settings.secondary_color || '#38F8D4';
+  const rgb       = hexToRgb(primary);
+
+  const [logoUri, bgUri] = await Promise.all([
+    getMediaDataUri('logo'),
+    getMediaDataUri('background')
+  ]);
+
+  const logoTag = logoUri
+    ? `<img id="siteLogo" src="${logoUri}" alt="Logo" class="logo-img mb-4">`
+    : `<div class="logo-img mb-4" style="height:80px;display:flex;align-items:center;justify-content:center;color:rgba(var(--accent-rgb),0.6);font-weight:700;font-size:22px;">${escHtml(settings.form_title || '').slice(0,24) || '•'}</div>`;
+
+  const logoSrcAttr = logoUri ? `src="${logoUri}"` : `src="" style="display:none"`;
+  const bgCss = bgUri ? `background-image: url('${bgUri}');` : `background: transparent;`;
+
+  const replacements = {
+    '__BRAND_PRIMARY__':       primary,
+    '__BRAND_SECONDARY__':     secondary,
+    '__BRAND_RGB__':           rgb,
+    '__BRAND_PAGE_TITLE__':    escHtml(settings.page_title || 'Aranma Talep'),
+    '__BRAND_FORM_TITLE__':    escHtml(settings.form_title || 'Aranma Talep'),
+    '__BRAND_FORM_SUBTITLE__': escHtml(settings.form_subtitle || 'Formu doldurun, en kısa sürede arayalım'),
+    '__BRAND_BTN_TEXT__':      escHtml(settings.button_text || 'Gönder'),
+    '__BRAND_BACK_BTN__':      escHtml(settings.back_button_text || 'Siteye Geri Dön'),
+    '__BRAND_REDIRECT__':      escHtml(settings.redirect_url || '#'),
+    '__ALLOWED_ORIGIN__':      process.env.ALLOWED_ORIGIN || '*',
+    '__BRAND_LOGO_TAG__':      logoTag,
+    '__BRAND_LOGO_SRC__':      logoSrcAttr,
+    '__BRAND_BG_CSS__':        bgCss,
+    '__BRAND_LOGO_WRAP_CSS__': ''
+  };
+
+  for (const [k, v] of Object.entries(replacements)) {
+    html = html.split(k).join(v);
+  }
+  return html;
+}
+
 // Logo ve arka plan yükleme (binary BLOB olarak sakla)
 app.post('/api/upload/logo', authMiddleware, async (req, res) => {
   const { data } = req.body;
@@ -564,9 +651,12 @@ app.post('/api/upload/logo', authMiddleware, async (req, res) => {
       'INSERT INTO media (media_key, media_data, mime_type) VALUES (?,?,?) ON DUPLICATE KEY UPDATE media_data=?, mime_type=?',
       ['logo', buf, m[1], buf, m[1]]
     );
-    const ext = m[1].split('/')[1] || 'png';
-    fs.writeFileSync(path.join(UPLOADS_DIR, `logo.${ext}`), buf);
-    fs.writeFileSync(path.join(UPLOADS_DIR, 'logo.meta'), m[1]);
+    try {
+      const ext = m[1].split('/')[1] || 'png';
+      fs.writeFileSync(path.join(UPLOADS_DIR, `logo.${ext}`), buf);
+      fs.writeFileSync(path.join(UPLOADS_DIR, 'logo.meta'), m[1]);
+    } catch (e) {}
+    invalidateMediaCache('logo');
     res.json({ success: true });
   } catch (e) { res.status(500).json({ error: 'Yükleme başarısız' }); }
 });
@@ -582,11 +672,20 @@ app.post('/api/upload/background', authMiddleware, async (req, res) => {
       'INSERT INTO media (media_key, media_data, mime_type) VALUES (?,?,?) ON DUPLICATE KEY UPDATE media_data=?, mime_type=?',
       ['background', buf, m[1], buf, m[1]]
     );
-    const ext = m[1].split('/')[1] || 'png';
-    fs.writeFileSync(path.join(UPLOADS_DIR, `background.${ext}`), buf);
-    fs.writeFileSync(path.join(UPLOADS_DIR, 'background.meta'), m[1]);
+    try {
+      const ext = m[1].split('/')[1] || 'png';
+      fs.writeFileSync(path.join(UPLOADS_DIR, `background.${ext}`), buf);
+      fs.writeFileSync(path.join(UPLOADS_DIR, 'background.meta'), m[1]);
+    } catch (e) {}
+    invalidateMediaCache('background');
     res.json({ success: true });
   } catch (e) { res.status(500).json({ error: 'Yükleme başarısız' }); }
+});
+
+// Ayar güncellendiğinde cache'i de temizle (renk/metin değişiklikleri için)
+app.post('/api/branding/invalidate', authMiddleware, (req, res) => {
+  invalidateMediaCache();
+  res.json({ success: true });
 });
 
 function serveUploadFallback(key, req, res, staticFile) {
@@ -629,56 +728,6 @@ app.get('/api/background', async (req, res) => {
     }
   } catch (e) {}
   serveUploadFallback('background', req, res, path.join(__dirname, 'public', 'background.png'));
-});
-
-// Ana form sayfası: branding ayarlarını server-side inject et (FOUC önleme)
-app.get('/', async (req, res) => {
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-  res.set('Pragma', 'no-cache');
-  const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
-  try {
-    let html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8');
-
-    let settings = {};
-    try {
-      const [rows] = await pool.query('SELECT setting_key, setting_value FROM settings');
-      rows.forEach(r => { settings[r.setting_key] = r.setting_value; });
-    } catch (e) {}
-
-    const primary   = settings.primary_color  || '#43EA80';
-    const secondary = settings.secondary_color || '#38F8D4';
-    const mediaV = Date.now();
-
-    // CSS değerlerini doğrudan kaynak HTML içinde değiştir (sıfır flash garantisi)
-    html = html.replace('--accent-start: #43EA80', `--accent-start: ${primary}`);
-    html = html.replace('--accent-end: #38F8D4', `--accent-end: ${secondary}`);
-    html = html.replace('--accent-gradient: linear-gradient(135deg, var(--accent-start), var(--accent-end))', `--accent-gradient: linear-gradient(135deg, ${primary}, ${secondary})`);
-    html = html.replace('--accent-rgb: 67, 234, 128', `--accent-rgb: ${hexToRgb(primary)}`);
-    html = html.replace("background-image: var(--bg-image, url('background.png'))", `background-image: url('/api/background?v=${mediaV}')`);
-
-    // Logo -> API endpoint
-    html = html.replace('id="siteLogo" src="logo.png"', `id="siteLogo" src="/api/logo?v=${mediaV}"`);
-
-    // Metinler
-    if (settings.page_title)       html = html.replace('>Maki Aranma Talep</title>',                                                  `>${escHtml(settings.page_title)}</title>`);
-    if (settings.form_title)       html = html.replace('>Maki Aranma Talep</h1>',                                                     `>${escHtml(settings.form_title)}</h1>`);
-    if (settings.form_subtitle)    html = html.replace('>Formu doldurun, en kısa sürede arayalım</p>',                                `>${escHtml(settings.form_subtitle)}</p>`);
-    if (settings.button_text)      html = html.replace('>Gönder</span>',                                                              `>${escHtml(settings.button_text)}</span>`);
-    if (settings.back_button_text) html = html.replace('>Güncel Siteye Geri Dön</span>',                                             `>${escHtml(settings.back_button_text)}</span>`);
-    if (settings.redirect_url)     html = html.replace('id="returnSiteBtn" href="#"', `id="returnSiteBtn" href="${escHtml(settings.redirect_url)}"`);
-
-    html = html.replace('</body>', `\n    <script>window.ALLOWED_ORIGIN = "${allowedOrigin}";</script>\n</body>`);
-    res.send(html);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Error loading page');
-  }
-});
-
-app.get('/index.html', (req, res) => res.redirect(301, '/'));
-
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {

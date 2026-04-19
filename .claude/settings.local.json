@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(node -e ' *)",
-      "Bash(node --check \"C:\\\\Users\\\\coban\\\\OneDrive\\\\Desktop\\\\aranmatalep-main\\\\public\\\\admin.js\")"
+      "Bash(node --check \"C:\\\\Users\\\\coban\\\\OneDrive\\\\Desktop\\\\aranmatalep-main\\\\public\\\\admin.js\")",
+      "Bash(node --check \"C:\\\\Users\\\\coban\\\\OneDrive\\\\Desktop\\\\aranmatalep-main\\\\server.js\")",
+      "Bash(node --check \"C:\\\\Users\\\\coban\\\\OneDrive\\\\Desktop\\\\aranmatalep-main\\\\public\\\\app.js\")"
     ]
   }
 }

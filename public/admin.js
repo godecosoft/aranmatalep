@@ -175,7 +175,7 @@ function switchSection(sectionName) {
     const activeNavItem = document.querySelector(`[data-section="${sectionName}"]`);
     if (activeNavItem) {
         activeNavItem.style.background = 'var(--accent-gradient)';
-        activeNavItem.style.boxShadow = '0 2px 12px rgba(67, 234, 128, 0.25)';
+        activeNavItem.style.boxShadow = '0 2px 12px rgba(var(--accent-rgb), 0.25)';
         activeNavItem.classList.add('text-slate-900', 'font-semibold');
         activeNavItem.classList.remove('text-slate-400', 'font-medium', 'hover:bg-slate-800/60');
     }
@@ -635,7 +635,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
             b.classList.add('bg-slate-800/60', 'text-slate-400', 'border', 'border-slate-700/50', 'hover:bg-slate-700/60', 'hover:text-white');
         });
         btn.style.background = 'var(--accent-gradient)';
-        btn.style.boxShadow = '0 2px 8px rgba(67, 234, 128, 0.2)';
+        btn.style.boxShadow = '0 2px 8px rgba(var(--accent-rgb), 0.2)';
         btn.classList.remove('bg-slate-800/60', 'text-slate-400', 'border', 'border-slate-700/50', 'hover:bg-slate-700/60', 'hover:text-white');
         btn.classList.add('text-slate-900');
         currentFilter = btn.dataset.filter;
@@ -1234,9 +1234,23 @@ async function saveBrandingSettings() {
         ];
         await Promise.all(saves);
 
-        // Admin panelde canlı önizleme
+        // Admin panelde canlı önizleme — renkler ve RGB
         document.documentElement.style.setProperty('--accent-start', primaryColor);
         document.documentElement.style.setProperty('--accent-end', secondaryColor);
+        const m = /^#?([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/i.exec(primaryColor);
+        if (m) {
+            document.documentElement.style.setProperty('--accent-rgb',
+                `${parseInt(m[1],16)}, ${parseInt(m[2],16)}, ${parseInt(m[3],16)}`);
+        }
+
+        // Sunucu cache'ini geçersiz kıl (renk/metin değişti)
+        try {
+            const token = sessionStorage.getItem('adminToken');
+            await fetch('/api/branding/invalidate', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        } catch {}
 
         if (statusEl) {
             statusEl.classList.remove('hidden');
@@ -1271,8 +1285,10 @@ async function handleLogoUpload(event) {
             const statusEl = document.getElementById('logoUploadStatus');
             if (statusEl) {
                 statusEl.classList.remove('hidden');
-                setTimeout(() => statusEl.classList.add('hidden'), 3000);
+                setTimeout(() => statusEl.classList.add('hidden'), 1500);
             }
+            // Admin panelinin body::before inline-gömülü logosu güncellensin
+            setTimeout(() => window.location.reload(), 800);
         } catch {
             showCustomAlert('Logo yüklenemedi.');
         }
@@ -1303,8 +1319,10 @@ async function handleBackgroundUpload(event) {
             const statusEl = document.getElementById('bgUploadStatus');
             if (statusEl) {
                 statusEl.classList.remove('hidden');
-                setTimeout(() => statusEl.classList.add('hidden'), 3000);
+                setTimeout(() => statusEl.classList.add('hidden'), 1500);
             }
+            // Admin panelinin body::before inline-gömülü arka planı güncellensin
+            setTimeout(() => window.location.reload(), 800);
         } catch {
             showCustomAlert('Arka plan yüklenemedi.');
         }
