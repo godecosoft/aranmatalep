@@ -57,7 +57,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Branding ayarlarını API'den çek ve uygula
     function hexToRgb(hex) {
-        const r = /^#?([a-fd]{2})([a-fd]{2})([a-fd]{2})$/i.exec(hex);
+        const r = /^#?([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/i.exec(hex);
         return r ? parseInt(r[1],16) + ', ' + parseInt(r[2],16) + ', ' + parseInt(r[3],16) : null;
     }
 

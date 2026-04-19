@@ -633,6 +633,8 @@ app.get('/api/background', async (req, res) => {
 
 // Ana form sayfası: branding ayarlarını server-side inject et (FOUC önleme)
 app.get('/', async (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.set('Pragma', 'no-cache');
   const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
   try {
     let html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8');
