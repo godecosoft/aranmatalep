@@ -1188,6 +1188,26 @@ async function loadSettings() {
         const bgPreview = document.getElementById('brandingBgPreview');
         if (bgPreview) bgPreview.src = '/api/background?' + Date.now();
 
+        // Blur slider
+        const blurSlider = document.getElementById('brandingBgBlur');
+        const blurValue = document.getElementById('brandingBgBlurValue');
+        if (blurSlider) {
+            const v = parseInt(settings.background_blur, 10);
+            blurSlider.value = Number.isFinite(v) ? v : 20;
+            if (blurValue) blurValue.textContent = blurSlider.value + 'px';
+            if (!blurSlider.dataset.bound) {
+                blurSlider.addEventListener('input', () => {
+                    if (blurValue) blurValue.textContent = blurSlider.value + 'px';
+                    // Canlı önizleme — admin panelinin kendi bg'si de değişir
+                    const css = `body::before{filter:blur(${blurSlider.value}px) !important;}`;
+                    let s = document.getElementById('blurPreviewStyle');
+                    if (!s) { s = document.createElement('style'); s.id = 'blurPreviewStyle'; document.head.appendChild(s); }
+                    s.textContent = css;
+                });
+                blurSlider.dataset.bound = '1';
+            }
+        }
+
         // Renk picker <-> hex senkronizasyonu
         syncColorInputs('primaryColorPicker', 'primaryColorHex');
         syncColorInputs('secondaryColorPicker', 'secondaryColorHex');
@@ -1231,6 +1251,7 @@ async function saveBrandingSettings() {
             saveSetting('form_subtitle', document.getElementById('brandingFormSubtitle')?.value?.trim() || ''),
             saveSetting('button_text', document.getElementById('brandingButtonText')?.value?.trim() || ''),
             saveSetting('back_button_text', document.getElementById('brandingBackBtnText')?.value?.trim() || ''),
+            saveSetting('background_blur', document.getElementById('brandingBgBlur')?.value || '20'),
         ];
         await Promise.all(saves);
 

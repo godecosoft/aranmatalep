@@ -76,7 +76,7 @@
             background-position: center;
             background-repeat: no-repeat;
             opacity: 0.45;
-            filter: blur(20px);
+            filter: blur(__BRAND_BG_BLUR__);
             z-index: -2;
         }
 
@@ -492,6 +492,20 @@
                                     <input type="file" id="bgFileInput" accept="image/*" class="hidden" onchange="handleBackgroundUpload(event)">
                                     <p class="text-xs text-slate-500 mt-1">PNG, JPG — maks. 5 MB</p>
                                     <p id="bgUploadStatus" class="text-xs text-emerald-400 mt-1 hidden">Arka plan kaydedildi!</p>
+                                </div>
+                            </div>
+
+                            <!-- Blur Ayarı -->
+                            <div class="mt-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label for="brandingBgBlur" class="text-sm font-medium text-slate-300">Arka Plan Bulanıklığı</label>
+                                    <span id="brandingBgBlurValue" class="text-xs text-slate-400 font-mono">20px</span>
+                                </div>
+                                <input type="range" id="brandingBgBlur" min="0" max="100" step="1" value="20"
+                                    class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                                <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                                    <span>Keskin (0)</span>
+                                    <span>Yoğun Blur (100)</span>
                                 </div>
                             </div>
                         </div>

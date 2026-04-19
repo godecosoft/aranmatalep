@@ -161,6 +161,7 @@ async function initializeDatabase() {
       ['page_title', 'Maki Aranma Talep'],
       ['logo_data', ''],
       ['background_data', ''],
+      ['background_blur', '20'],
     ];
     for (const [key, value] of defaultSettings) {
       await pool.query(
@@ -616,10 +617,14 @@ async function renderBrandedHtml(fileName) {
   const logoSrcAttr = logoUri ? `src="${logoUri}"` : `src="" style="display:none"`;
   const bgCss = bgUri ? `background-image: url('${bgUri}');` : `background: transparent;`;
 
+  const blurVal = parseInt(settings.background_blur, 10);
+  const blur = Number.isFinite(blurVal) ? Math.max(0, Math.min(100, blurVal)) : 20;
+
   const replacements = {
     '__BRAND_PRIMARY__':       primary,
     '__BRAND_SECONDARY__':     secondary,
     '__BRAND_RGB__':           rgb,
+    '__BRAND_BG_BLUR__':       `${blur}px`,
     '__BRAND_PAGE_TITLE__':    escHtml(settings.page_title || 'Aranma Talep'),
     '__BRAND_FORM_TITLE__':    escHtml(settings.form_title || 'Aranma Talep'),
     '__BRAND_FORM_SUBTITLE__': escHtml(settings.form_subtitle || 'Formu doldurun, en kısa sürede arayalım'),
